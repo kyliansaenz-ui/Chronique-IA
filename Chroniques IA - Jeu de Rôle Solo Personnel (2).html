@@ -1,0 +1,3449 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chroniques IA — Jeu de Rôle Solo Personnel</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts : Inter & Cinzel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Cinzel', 'serif'],
+          },
+          colors: {
+            surface: {
+              950: '#07090e',
+              900: '#0e131d',
+              800: '#161e2e',
+              700: '#212c42',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* ==================== PALETTES DYNAMIQUES PAR UNIVERS ==================== */
+    :root {
+      --accent: #f59e0b;
+      --accent-secondary: #10b981;
+      --accent-rgb: 245, 158, 11;
+      --accent-sec-rgb: 16, 185, 129;
+    }
+
+    body[data-theme="fantasy"] {
+      --accent: #f59e0b;
+      --accent-secondary: #10b981;
+      --accent-rgb: 245, 158, 11;
+      --accent-sec-rgb: 16, 185, 129;
+    }
+    body[data-theme="cyberpunk"] {
+      --accent: #06b6d4;
+      --accent-secondary: #ec4899;
+      --accent-rgb: 6, 182, 212;
+      --accent-sec-rgb: 236, 72, 153;
+    }
+    body[data-theme="isekai"] {
+      --accent: #8b5cf6;
+      --accent-secondary: #f59e0b;
+      --accent-rgb: 139, 92, 246;
+      --accent-sec-rgb: 245, 158, 11;
+    }
+    body[data-theme="medieval"] {
+      --accent: #c89d54;
+      --accent-secondary: #b91c1c;
+      --accent-rgb: 200, 157, 84;
+      --accent-sec-rgb: 185, 28, 28;
+    }
+    body[data-theme="horror"] {
+      --accent: #0d9488;
+      --accent-secondary: #dc2626;
+      --accent-rgb: 13, 148, 136;
+      --accent-sec-rgb: 220, 38, 38;
+    }
+    body[data-theme="scifi"] {
+      --accent: #3b82f6;
+      --accent-secondary: #cbd5e1;
+      --accent-rgb: 59, 130, 246;
+      --accent-sec-rgb: 203, 213, 225;
+    }
+
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body.game-active {
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: #07090e;
+      color: #e2e8f0;
+      background-image:
+        radial-gradient(circle at 12% 14%, rgba(var(--accent-rgb), 0.14), transparent 44%),
+        radial-gradient(circle at 88% 82%, rgba(var(--accent-sec-rgb), 0.11), transparent 46%);
+      background-attachment: fixed;
+      transition: background-image 0.5s ease;
+    }
+
+    .accent-bg { background: linear-gradient(135deg, var(--accent), var(--accent-secondary)); }
+    .accent-text { color: var(--accent); }
+    .accent-border { border-color: rgba(var(--accent-rgb), 0.45); }
+    .accent-glow { box-shadow: 0 0 28px rgba(var(--accent-rgb), 0.25); }
+    .accent-ring:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.55);
+      border-color: var(--accent);
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(14, 19, 29, 0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.28); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-rgb), 0.65); }
+
+    /* ==================== ANIMATIONS ==================== */
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeInSlide 0.26s ease-out forwards; }
+
+    @keyframes diceSpinBG3 {
+      0%   { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), 0.4)); }
+      25%  { transform: rotate(100deg) scale(1.14); filter: drop-shadow(0 0 28px rgba(var(--accent-rgb), 0.8)); }
+      50%  { transform: rotate(195deg) scale(0.94); filter: drop-shadow(0 0 18px rgba(var(--accent-sec-rgb), 0.6)); }
+      75%  { transform: rotate(285deg) scale(1.12); filter: drop-shadow(0 0 26px rgba(var(--accent-rgb), 0.8)); }
+      100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), 0.4)); }
+    }
+    .dice-rolling { animation: diceSpinBG3 0.38s linear infinite; }
+
+    @keyframes popScale {
+      0%   { transform: scale(0.72); opacity: 0.4; }
+      60%  { transform: scale(1.22); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop { animation: popScale 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+    @keyframes bonusFlyUp {
+      0%   { transform: translateY(0) scale(1); opacity: 1; }
+      60%  { transform: translateY(-28px) scale(1.18); opacity: 1; }
+      100% { transform: translateY(-54px) scale(0.5); opacity: 0; }
+    }
+    .bonus-merging { animation: bonusFlyUp 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+    @keyframes pulseDot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .typing-dot { animation: pulseDot 1.2s infinite ease-in-out both; }
+    .typing-dot:nth-child(2) { animation-delay: 0.16s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.32s; }
+
+    .bg3-panel {
+      background: radial-gradient(circle at top, rgba(30, 38, 56, 0.96), rgba(10, 13, 21, 0.98));
+      box-shadow:
+        0 0 0 1px rgba(var(--accent-rgb), 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 25px 60px -12px rgba(0, 0, 0, 0.85);
+    }
+
+    /* HUD Stats : stat qui s'agite & évolution */
+    @keyframes statAgitate {
+      0%, 100% {
+        transform: scale(1) translateY(0);
+        box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.75), 0 0 14px rgba(var(--accent-rgb), 0.45);
+      }
+      50% {
+        transform: scale(1.05) translateY(-1.5px);
+        box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 1), 0 0 22px rgba(var(--accent-rgb), 0.75);
+      }
+    }
+    .stat-pill-active {
+      animation: statAgitate 1.05s ease-in-out infinite;
+      border-color: var(--accent) !important;
+      background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.24), rgba(var(--accent-sec-rgb), 0.14)) !important;
+    }
+
+    @keyframes statFlashUp {
+      0%   { background-color: rgba(16, 185, 129, 0.45); border-color: #34d399; transform: scale(1.08); }
+      100% { background-color: rgba(10, 13, 21, 0.85); border-color: rgba(255, 255, 255, 0.1); transform: scale(1); }
+    }
+    .stat-flash-up { animation: statFlashUp 1.6s ease-out forwards; }
+
+    @keyframes statFlashDown {
+      0%   { background-color: rgba(244, 63, 94, 0.45); border-color: #fb7185; transform: scale(1.06); }
+      100% { background-color: rgba(10, 13, 21, 0.85); border-color: rgba(255, 255, 255, 0.1); transform: scale(1); }
+    }
+    .stat-flash-down { animation: statFlashDown 1.6s ease-out forwards; }
+
+    @keyframes floatDeltaBadge {
+      0%   { opacity: 0; transform: translate(-50%, 6px) scale(0.75); }
+      20%  { opacity: 1; transform: translate(-50%, -6px) scale(1.1); }
+      80%  { opacity: 1; transform: translate(-50%, -18px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -26px) scale(0.9); }
+    }
+    .stat-float-badge {
+      animation: floatDeltaBadge 1.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Tiroir glissant rapide : Bottom Sheet sur mobile, panneau latéral droit sur desktop */
+    .quick-drawer-closed {
+      transform: translateY(105%);
+    }
+    .quick-drawer-open {
+      transform: translateY(0);
+    }
+    @media (min-width: 1024px) {
+      .quick-drawer-closed {
+        transform: translateX(105%);
+      }
+      .quick-drawer-open {
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body data-theme="fantasy" class="min-h-[100dvh] flex flex-col font-sans antialiased selection:bg-white/20 selection:text-white">
+
+  <!-- ==================== BARRE DE NAVIGATION COMPACTE ==================== -->
+  <header class="sticky top-0 z-30 shrink-0 backdrop-blur-md bg-surface-950/90 border-b border-white/10">
+      <!-- Contrôles droite -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Bouton Clé API avec pastille -->
+        <button id="btn-api-modal" type="button" onclick="app.openApiModal()"
+          class="px-2.5 sm:px-3 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs sm:text-sm font-medium text-slate-100 flex items-center gap-1.5 sm:gap-2 transition active:scale-95">
+          <span id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.85)] shrink-0"></span>
+          <span>⚙️ <span class="hidden xs:inline">Clé </span>API</span>
+        </button>
+
+        <!-- Bouton Son -->
+        <button type="button" onclick="app.toggleSound()" title="Activer/Couper les effets sonores"
+          class="p-2 sm:p-2.5 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-slate-300 transition active:scale-95">
+          <span id="icon-sound-on" class="text-sm leading-none">🔊</span>
+          <span id="icon-sound-off" class="hidden text-sm leading-none">🔇</span>
+        </button>
+
+        <!-- Profil & Préférences -->
+        <button id="btn-nav-prefs" type="button" onclick="app.navigate('prefs')" title="Profil & Préférences"
+          class="p-2 sm:px-3 sm:py-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 transition active:scale-95">
+          <svg class="w-4 h-4 accent-text shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span id="nav-username" class="hidden md:inline max-w-[110px] truncate">Profil</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== CONTENU PRINCIPAL ==================== -->
+  <main class="flex-1 min-h-0 flex flex-col w-full">
+
+    <!-- ==================== VUE 1 : TABLEAU DE BORD (AFFICHÉ IMMÉDIATEMENT) ==================== -->
+    <section id="view-dashboard" class="max-w-6xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8 animate-fade-in">
+      <!-- Bannière rapide si clé API non configurée -->
+      <div id="dash-api-banner" class="hidden mb-5 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="text-xs sm:text-sm text-amber-200 leading-relaxed">
+          <strong>Clé API requise pour jouer :</strong> Collez votre clé gratuite Google AI Studio pour activer le Maître du Jeu IA.
+        </div>
+        <button type="button" onclick="app.openApiModal()" class="shrink-0 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition active:scale-95">
+          ⚙️ Configurer ma clé API
+        </button>
+      </div>
+
+      <!-- En-tête de bienvenue -->
+      <div class="bg-surface-900/90 border border-white/10 rounded-3xl p-5 sm:p-8 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xl">
+        <div>
+          <h1 class="font-display text-2xl sm:text-3xl font-bold text-white">
+            Bienvenue, <span id="dash-player-name" class="accent-text">Aventurier</span>
+          </h1>
+          <p class="text-sm text-slate-400 mt-1.5 max-w-xl">
+            Reprenez vos chroniques ou lancez une nouvelle partie avec jets de D20 tactiques à la Baldur's Gate 3.
+          </p>
+          <div id="dash-prefs-badges" class="flex flex-wrap gap-1.5 mt-3.5"></div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2.5 shrink-0">
+          <button type="button" onclick="app.navigate('prefs')"
+            class="px-4 py-3.5 rounded-2xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-slate-200 font-semibold text-sm transition flex items-center justify-center gap-2 active:scale-95">
+            <span>🎭 Mes Préférences</span>
+          </button>
+          <button type="button" onclick="app.navigate('themes')"
+            class="px-6 py-3.5 rounded-2xl accent-bg text-white font-semibold text-sm sm:text-base shadow-lg accent-glow hover:brightness-110 transition flex items-center justify-center gap-2 active:scale-95">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Nouvelle Aventure
+          </button>
+        </div>
+      </div>
+
+      <!-- Barre Mes Aventures + Export/Import -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="font-display text-xl font-bold text-white flex items-center gap-2">
+          Mes Aventures
+          <span id="dash-count" class="text-xs font-sans font-semibold px-2.5 py-0.5 rounded-full bg-surface-800 text-slate-300 border border-white/10">0</span>
+        </h2>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="app.exportSaveJson()" class="px-3 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs text-slate-300 transition">
+            ⬇ Exporter JSON
+          </button>
+          <label class="cursor-pointer px-3 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs text-slate-300 transition">
+            ⬆ Importer JSON
+            <input type="file" accept=".json,application/json" onchange="app.importSaveJson(event)" class="hidden" />
+          </label>
+        </div>
+      </div>
+
+      <div id="adventures-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"></div>
+
+      <div id="adventures-empty" class="hidden text-center py-12 px-5 bg-surface-900/50 border border-dashed border-white/15 rounded-3xl">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-surface-800 flex items-center justify-center text-2xl mb-4">🎲</div>
+        <h3 class="text-lg font-semibold text-white">Aucune chronique en cours</h3>
+        <p class="text-sm text-slate-400 mt-1 max-w-md mx-auto">Choisissez un univers parmi nos 6 thématiques et forgez votre personnage.</p>
+        <button type="button" onclick="app.navigate('themes')" class="mt-5 px-5 py-3 rounded-xl accent-bg text-white text-sm font-semibold shadow-lg hover:brightness-110 transition">
+          Choisir un univers →
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== VUE 2 : PROFIL & PRÉFÉRENCES ==================== -->
+    <section id="view-prefs" class="hidden max-w-3xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8 animate-fade-in">
+      <div class="bg-surface-900/90 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl">
+        <div class="mb-6">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 accent-text border accent-border mb-3">
+            Espace Personnel • 100% Local
+          </span>
+          <h1 class="font-display text-2xl sm:text-3xl font-bold text-white">Votre Profil de Joueur</h1>
+          <p class="text-sm text-slate-400 mt-1.5">Le Maître du Jeu adapte la narration, les enjeux et les épreuves à vos préférences.</p>
+        </div>
+
+        <div class="space-y-6">
+          <div>
+            <label for="pref-name" class="block text-sm font-semibold text-slate-200 mb-2">Votre pseudo de joueur</label>
+            <input id="pref-name" type="text" placeholder="Ex: Alex, Lyra, Kael..."
+              class="w-full px-4 py-3.5 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-200 mb-1">Ambiances préférées</label>
+            <p class="text-xs text-slate-400 mb-3">Choisissez le ton de vos aventures.</p>
+            <div id="pref-ambiances-container" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-200 mb-1">Piliers de jeu favoris</label>
+            <p class="text-xs text-slate-400 mb-3">Ce que vous voulez vivre le plus souvent.</p>
+            <div id="pref-pillars-container" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-slate-200 mb-1">Thèmes à éviter</label>
+            <p class="text-xs text-slate-400 mb-3">Le Maître du Jeu respectera strictement ces limites.</p>
+            <div id="pref-avoid-tags" class="flex flex-wrap gap-2 mb-3"></div>
+            <textarea id="pref-avoid-custom" rows="2" placeholder="Autres thèmes ou phobies à éviter (optionnel)..."
+              class="w-full px-4 py-3 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-white/10">
+          <button type="button" onclick="app.navigate('dashboard')" class="px-5 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm font-medium transition">
+            ← Retour
+          </button>
+          <button type="button" onclick="app.savePreferences()" class="px-6 py-3 rounded-xl accent-bg text-white font-semibold text-sm shadow-lg hover:brightness-110 transition">
+            Enregistrer mes préférences
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VUE 3 : CHOIX DE L'UNIVERS ==================== -->
+    <section id="view-themes" class="hidden max-w-6xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8 animate-fade-in">
+      <div class="mb-6">
+        <button type="button" onclick="app.navigate('dashboard')" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 mb-2 py-1 transition">
+          ← Retour à mes aventures
+        </button>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold text-white">Choisissez votre Univers</h2>
+        <p class="text-sm text-slate-400 mt-1">La palette visuelle, les classes et les épreuves narratives s'adaptent instantanément.</p>
+      </div>
+
+      <div id="themes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"></div>
+    </section>
+
+    <!-- ==================== VUE 4 : CRÉATION DE PERSONNAGE GUIDÉE ==================== -->
+    <section id="view-creation" class="hidden max-w-4xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8 animate-fade-in">
+      <div class="bg-surface-900/90 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+        <div class="px-5 sm:px-6 py-4 sm:py-5 border-b border-white/10 bg-surface-950/60 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span id="creation-theme-badge" class="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/10 accent-text mb-1">Univers</span>
+            <h2 class="font-display text-xl sm:text-2xl font-bold text-white">Création de votre Personnage</h2>
+          </div>
+          <div class="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold">
+            <span id="step-pill-1" class="px-2.5 sm:px-3 py-1 rounded-full accent-bg text-white">1. Identité</span>
+            <span id="step-pill-2" class="px-2.5 sm:px-3 py-1 rounded-full bg-surface-800 text-slate-400">2. Classe</span>
+            <span id="step-pill-3" class="px-2.5 sm:px-3 py-1 rounded-full bg-surface-800 text-slate-400">3. Stats</span>
+          </div>
+        </div>
+
+        <div class="p-5 sm:p-8 space-y-6">
+          <div class="flex gap-3 items-start bg-surface-950/80 border accent-border rounded-2xl p-4 sm:p-5">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl accent-bg flex items-center justify-center text-white font-display font-bold shadow text-xs sm:text-sm">MJ</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold accent-text uppercase tracking-wider mb-1">Maître du Jeu IA</div>
+              <div id="creation-gm-message" class="text-sm sm:text-base text-slate-200 leading-relaxed"></div>
+            </div>
+          </div>
+
+          <!-- ÉTAPE 1 -->
+          <div id="creation-step-1" class="space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-sm font-semibold text-slate-200">Nom du personnage</label>
+                <button type="button" onclick="app.suggestRandomName()" class="text-xs accent-text hover:underline font-medium py-1">
+                  🎲 Suggérer un nom
+                </button>
+              </div>
+              <input id="char-name-input" type="text" placeholder="Ex: Kael, Nyx, Haruto..."
+                class="w-full px-4 py-3.5 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-200 mb-1.5">Origine ou trait marquant (optionnel)</label>
+              <input id="char-concept-input" type="text" placeholder="Ex: Ancien mercenaire, étudiant réincarné, noble déchu..."
+                class="w-full px-4 py-3.5 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring" />
+            </div>
+            <div class="flex flex-col-reverse sm:flex-row justify-between gap-2.5 pt-2">
+              <button type="button" onclick="app.navigate('themes')" class="px-4 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm transition">Changer d'univers</button>
+              <button type="button" onclick="app.goCreationStep(2)" class="px-6 py-3.5 rounded-xl accent-bg text-white text-sm font-semibold shadow-lg hover:brightness-110 transition">
+                Choisir la Classe →
+              </button>
+            </div>
+          </div>
+
+          <!-- ÉTAPE 2 -->
+          <div id="creation-step-2" class="hidden space-y-5">
+            <div id="creation-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+
+            <div class="pt-3 border-t border-white/10">
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Ou saisissez une classe libre personnalisée :</label>
+              <input id="char-custom-class" type="text" oninput="app.selectCustomClass(this.value)" placeholder="Ex: Forgeron runique, Hacker pacifiste, Détective fantôme..."
+                class="w-full px-4 py-3.5 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring" />
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row justify-between gap-2.5 pt-2">
+              <button type="button" onclick="app.goCreationStep(1)" class="px-4 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm transition">← Retour</button>
+              <button type="button" onclick="app.goCreationStep(3)" class="px-6 py-3.5 rounded-xl accent-bg text-white text-sm font-semibold shadow-lg hover:brightness-110 transition">
+                Répartir mes Statistiques →
+              </button>
+            </div>
+          </div>
+
+          <!-- ÉTAPE 3 -->
+          <div id="creation-step-3" class="hidden space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-surface-950/75 border border-white/10 rounded-2xl p-4">
+              <div>
+                <div class="text-xs text-slate-400">Points restants à répartir</div>
+                <div class="text-2xl font-bold text-white"><span id="stat-points-left" class="accent-text">18</span> <span class="text-sm font-normal text-slate-400">/ 18</span></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="text-right">
+                  <div class="text-xs text-slate-400">PV Max estimés</div>
+                  <div id="creation-hp-preview" class="text-lg font-bold text-emerald-400">20 PV</div>
+                </div>
+                <button type="button" onclick="app.autoAllocateStats()" class="px-3.5 py-2.5 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs font-medium text-slate-200 transition">
+                  ✨ Auto-répartir
+                </button>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-slate-400 px-1">
+              Bonus aux jets de D20 : <strong>8-9</strong> (-1) · <strong>10-11</strong> (+0) · <strong>12-13</strong> (+1) · <strong>14-15</strong> (+2) · <strong>16-17</strong> (+3) · <strong>18</strong> (+4)
+            </p>
+
+            <div id="creation-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+            <div id="creation-error-box" class="hidden p-4 rounded-2xl bg-rose-500/15 border border-rose-500/35 text-xs sm:text-sm text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <span id="creation-error-text" class="break-words"></span>
+              <div class="flex gap-2 shrink-0">
+                <button type="button" onclick="app.openApiModal()" class="px-3.5 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 text-white text-xs font-semibold">⚙️ Clé API</button>
+                <button type="button" onclick="app.finalizeCharacterAndStart()" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">↻ Réessayer</button>
+              </div>
+            </div>
+
+            <div class="flex flex-col-reverse sm:flex-row justify-between gap-2.5 pt-3">
+              <button type="button" onclick="app.goCreationStep(2)" class="px-4 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm transition">← Retour</button>
+              <button id="btn-launch-adventure" type="button" onclick="app.finalizeCharacterAndStart()"
+                class="px-6 py-3.5 rounded-xl accent-bg text-white text-sm font-semibold shadow-lg accent-glow hover:brightness-110 transition flex items-center justify-center gap-2 disabled:opacity-50">
+                <span>Commencer l'Aventure</span>
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VUE 5 : INTERFACE DE JEU INTERACTIVE ==================== -->
+    <section id="view-game" class="hidden flex-1 min-h-0 flex flex-col max-w-5xl w-full mx-auto overflow-hidden">
+
+      <!-- Sous-en-tête minimaliste fixe -->
+      <div class="px-3 sm:px-6 py-2 border-b border-white/10 bg-surface-900/85 flex items-center justify-between gap-2 shrink-0">
+        <div class="min-w-0 flex items-center gap-2">
+          <span id="game-theme-tag" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-white/10 accent-text shrink-0">Univers</span>
+          <h2 id="game-title" class="font-display font-bold text-sm sm:text-base text-white truncate">Chronique</h2>
+        </div>
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button type="button" onclick="app.navigate('dashboard')" class="px-3 py-1.5 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs text-slate-300 transition active:scale-95">
+            ← Parties
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== HUD COMPACT & REPLIABLE DES 6 STATS ==================== -->
+      <div id="game-stats-hud" class="px-3 sm:px-6 py-2 border-b border-white/10 bg-surface-950/95 backdrop-blur-md shrink-0 space-y-2 shadow-lg">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="hud-name" class="font-display font-bold text-xs sm:text-sm text-white truncate max-w-[120px] sm:max-w-[200px]">Héros</span>
+            <span id="hud-level" class="px-2 py-0.5 rounded-md accent-bg text-white text-[10px] font-bold shrink-0">Niv. 1</span>
+            <span id="hud-xp-text" class="hidden sm:inline text-[11px] text-sky-400 font-medium shrink-0">XP 0/100</span>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[11px] text-slate-400 font-semibold">PV</span>
+              <div class="w-16 sm:w-24 h-2 bg-surface-800 rounded-full overflow-hidden border border-white/5">
+                <div id="hud-hp-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 100%"></div>
+              </div>
+              <span id="hud-hp-text" class="text-[11px] font-bold text-emerald-400 tabular-nums">20/20</span>
+            </div>
+
+            <button id="btn-toggle-hud-stats" type="button" onclick="app.toggleHudStats()" title="Replier / Déplier les statistiques"
+              class="px-2 py-1 rounded-lg bg-surface-800 hover:bg-surface-700 border border-white/10 text-[11px] font-medium text-slate-300 flex items-center gap-1 transition active:scale-95">
+              <span id="hud-stats-toggle-icon">▴</span>
+              <span class="hidden xs:inline">Stats</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="hud-stats-wrapper" class="transition-all duration-200">
+          <div id="hud-stats-grid" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5"></div>
+        </div>
+      </div>
+
+      <!-- ==================== ZONE CENTRALE NARRATIVE (SEUL ÉLÉMENT QUI DÉFILE) ==================== -->
+      <div class="flex-1 min-h-0 relative flex flex-col overflow-hidden">
+        <div id="chat-log" onscroll="app.handleChatScroll()" class="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 scroll-smooth"></div>
+
+        <!-- Indicateur de frappe du MJ -->
+        <div id="gm-typing" class="hidden shrink-0 px-3 sm:px-6 py-2 bg-surface-950/90 border-t border-white/5 flex items-center gap-2.5 text-xs text-slate-300">
+          <div class="flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full accent-bg typing-dot"></span>
+            <span class="w-1.5 h-1.5 rounded-full accent-bg typing-dot"></span>
+            <span class="w-1.5 h-1.5 rounded-full accent-bg typing-dot"></span>
+          </div>
+          <span id="gm-typing-label" class="font-medium">Le Maître du Jeu tisse la suite</span>
+        </div>
+
+        <!-- Bouton flottant discret pour redescendre au dernier tour en 1 tap -->
+        <button id="btn-scroll-bottom" type="button" onclick="app.scrollToLatestTurn()"
+          class="hidden absolute bottom-3 right-3 sm:right-6 z-20 px-3.5 py-2 rounded-full bg-surface-900/95 hover:bg-surface-800 border accent-border text-xs font-semibold text-white shadow-xl backdrop-blur-md flex items-center gap-1.5 transition active:scale-95 animate-fade-in">
+          <span>⬇️</span>
+          <span>Dernier tour</span>
+        </button>
+      </div>
+
+      <!-- Encart d'erreur avec bouton Réessayer -->
+      <div id="game-error-banner" class="hidden shrink-0 mx-3 sm:mx-6 my-2 p-3 rounded-2xl bg-rose-500/15 border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-fade-in">
+        <div class="text-xs sm:text-sm text-rose-200 break-words">
+          <strong class="block sm:inline">Souci avec le Maître du Jeu :</strong>
+          <span id="game-error-detail">Impossible de joindre l'API Gemini.</span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" onclick="app.openApiModal()" class="px-3 py-2 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/15 text-xs font-semibold text-white transition">
+            ⚙️ Clé API
+          </button>
+          <button type="button" onclick="app.retryLastTurn()" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white transition">
+            ↻ Réessayer
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== ZONE INFÉRIEURE FIXE : CHOIX + SAISIE LIBRE ==================== -->
+      <div class="px-3 sm:px-5 py-2.5 border-t border-white/10 bg-surface-900/95 backdrop-blur-md shrink-0 space-y-2">
+        <div id="suggested-actions" class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 max-h-36 sm:max-h-none overflow-y-auto pr-0.5"></div>
+
+        <!-- Bandeau de détection de stat en direct -->
+        <div id="custom-stat-hint" class="hidden px-3 py-1.5 rounded-xl bg-surface-950/90 border accent-border text-[11px] sm:text-xs text-slate-200 flex items-center justify-between gap-2 animate-fade-in">
+          <span id="custom-stat-hint-text" class="truncate"></span>
+          <span class="text-[10px] text-slate-400 shrink-0">confirmée par le MJ</span>
+        </div>
+
+        <form onsubmit="app.handleCustomActionSubmit(event)" class="flex gap-2">
+          <input id="player-action-input" type="text" autocomplete="off"
+            oninput="app.handleCustomActionInput(this.value)"
+            placeholder="Ou inventez votre propre action..."
+            class="flex-1 min-w-0 px-3.5 py-2.5 sm:py-3 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring" />
+          <button id="btn-send-action" type="submit"
+            class="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl accent-bg text-white font-semibold text-sm shadow-lg hover:brightness-110 transition disabled:opacity-40 flex items-center gap-1.5 shrink-0 active:scale-95">
+            <span class="hidden sm:inline">Tenter</span>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- ==================== BARRE D'ACCÈS RAPIDE PERMANENTE (QUICK-ACCESS DOCK) ==================== -->
+      <nav id="quick-access-dock" aria-label="Accès rapide" class="relative shrink-0 bg-surface-950/98 border-t border-white/10 px-2 sm:px-4 py-1.5">
+        <!-- Menu pop-up discret pour le rythme -->
+        <div id="pacing-popover" class="hidden absolute bottom-full right-2 sm:right-4 mb-2 w-56 bg-surface-900 border border-white/15 rounded-2xl p-2 shadow-2xl z-30 animate-fade-in space-y-1">
+          <div class="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold text-slate-400">Rythme de l'histoire</div>
+          <button type="button" data-pacing="rp" onclick="app.setPacing('rp', true)"
+            class="pacing-btn w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition">
+            <span>🎭 Détente & RP</span>
+            <span class="text-[10px] opacity-75">Calme</span>
+          </button>
+          <button type="button" data-pacing="balanced" onclick="app.setPacing('balanced', true)"
+            class="pacing-btn w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition">
+            <span>⚖️ Équilibré</span>
+            <span class="text-[10px] opacity-75">Naturel</span>
+          </button>
+          <button type="button" data-pacing="action" onclick="app.setPacing('action', true)"
+            class="pacing-btn w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition">
+            <span>⚔️ Action</span>
+            <span class="text-[10px] opacity-75">Tendu</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-5 gap-1 sm:gap-2">
+          <button type="button" onclick="app.openQuickDrawer('inventory')"
+            class="py-1.5 px-1 rounded-xl hover:bg-surface-800/90 text-slate-200 flex flex-col items-center justify-center gap-0.5 transition active:scale-95 relative">
+            <div class="relative flex items-center justify-center">
+              <span class="text-base sm:text-lg leading-none">🎒</span>
+              <span id="dock-inv-count" class="absolute -top-1.5 -right-3 min-w-[16px] h-4 px-1 rounded-full bg-surface-700 border border-white/15 text-[10px] font-bold text-white flex items-center justify-center">0</span>
+            </div>
+            <span class="text-[10px] sm:text-[11px] font-medium text-slate-300 truncate max-w-full">Inventaire</span>
+          </button>
+
+          <button type="button" onclick="app.openQuickDrawer('sheet')"
+            class="py-1.5 px-1 rounded-xl hover:bg-surface-800/90 text-slate-200 flex flex-col items-center justify-center gap-0.5 transition active:scale-95 relative">
+            <div class="relative flex items-center justify-center">
+              <span class="text-base sm:text-lg leading-none">📊</span>
+              <span id="dock-hp-badge" class="absolute -top-1.5 -right-5 px-1 h-4 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[9px] font-bold text-emerald-300 flex items-center justify-center tabular-nums">20/20</span>
+            </div>
+            <span class="text-[10px] sm:text-[11px] font-medium text-slate-300 truncate max-w-full">Fiche</span>
+          </button>
+
+          <button type="button" onclick="app.openQuickDrawer('npcs')"
+            class="py-1.5 px-1 rounded-xl hover:bg-surface-800/90 text-slate-200 flex flex-col items-center justify-center gap-0.5 transition active:scale-95 relative">
+            <div class="relative flex items-center justify-center">
+              <span class="text-base sm:text-lg leading-none">👥</span>
+              <span id="dock-npc-count" class="absolute -top-1.5 -right-3 min-w-[16px] h-4 px-1 rounded-full bg-surface-700 border border-white/15 text-[10px] font-bold text-white flex items-center justify-center">0</span>
+            </div>
+            <span class="text-[10px] sm:text-[11px] font-medium text-slate-300 truncate max-w-full">Relations</span>
+          </button>
+
+          <button type="button" onclick="app.openQuickDrawer('quests')"
+            class="py-1.5 px-1 rounded-xl hover:bg-surface-800/90 text-slate-200 flex flex-col items-center justify-center gap-0.5 transition active:scale-95 relative">
+            <div class="relative flex items-center justify-center">
+              <span class="text-base sm:text-lg leading-none">📜</span>
+              <span id="dock-quest-count" class="absolute -top-1.5 -right-3 min-w-[16px] h-4 px-1 rounded-full bg-amber-500/25 border border-amber-400/45 text-[10px] font-bold text-amber-200 flex items-center justify-center">0</span>
+            </div>
+            <span class="text-[10px] sm:text-[11px] font-medium text-slate-300 truncate max-w-full">Quêtes</span>
+          </button>
+
+          <button id="dock-pacing-btn" type="button" onclick="app.togglePacingPopover()"
+            class="py-1.5 px-1 rounded-xl hover:bg-surface-800/90 text-slate-200 flex flex-col items-center justify-center gap-0.5 transition active:scale-95">
+            <span id="dock-pacing-icon" class="text-base sm:text-lg leading-none">⚖️</span>
+            <span id="dock-pacing-label" class="text-[10px] sm:text-[11px] font-medium accent-text truncate max-w-full">Équilibré</span>
+          </button>
+        </div>
+      </nav>
+    </section>
+
+    <!-- ==================== TIROIR GLISSANT RAPIDE (BOTTOM SHEET MOBILE / LATÉRAL DESKTOP) ==================== -->
+    <div id="drawer-backdrop" onclick="app.closeQuickDrawer()" class="hidden fixed inset-0 bg-black/75 backdrop-blur-xs z-40 transition-opacity"></div>
+    <aside id="quick-drawer"
+      class="fixed inset-x-0 bottom-0 lg:inset-y-0 lg:left-auto lg:right-0 z-50 max-h-[84dvh] lg:max-h-none lg:w-[420px] bg-surface-900 border-t lg:border-t-0 lg:border-l border-white/15 rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl shadow-2xl flex flex-col transition-transform duration-300 ease-out quick-drawer-closed">
+
+      <!-- Poignée mobile -->
+      <div class="lg:hidden flex justify-center pt-2.5 pb-1 shrink-0" onclick="app.closeQuickDrawer()">
+        <div class="w-11 h-1.5 rounded-full bg-white/20"></div>
+      </div>
+
+      <!-- En-tête du tiroir -->
+      <div class="px-4 sm:px-5 pt-2 pb-3 border-b border-white/10 flex items-center justify-between gap-2 shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h3 id="sheet-name" class="font-display text-lg font-bold text-white leading-tight truncate">Héros</h3>
+            <span id="sheet-level" class="px-2 py-0.5 rounded-md accent-bg text-white text-[11px] font-bold shadow shrink-0">Niv. 1</span>
+          </div>
+          <p id="sheet-class" class="text-xs accent-text font-medium mt-0.5 truncate">Classe</p>
+        </div>
+        <button type="button" onclick="app.closeQuickDrawer()" aria-label="Fermer le tiroir"
+          class="w-9 h-9 rounded-xl bg-surface-800 hover:bg-surface-700 text-slate-300 hover:text-white flex items-center justify-center transition shrink-0 active:scale-95">✕</button>
+      </div>
+
+      <!-- Onglets instantanés du tiroir -->
+      <div class="px-4 sm:px-5 py-2.5 border-b border-white/10 bg-surface-950/60 shrink-0">
+        <div class="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-surface-950 border border-white/10">
+          <button id="drawer-tab-inventory" type="button" onclick="app.switchDrawerTab('inventory')"
+            class="py-2 px-1 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1">
+            <span>🎒</span><span class="truncate">Sac</span>
+          </button>
+          <button id="drawer-tab-sheet" type="button" onclick="app.switchDrawerTab('sheet')"
+            class="py-2 px-1 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1">
+            <span>📊</span><span class="truncate">Fiche</span>
+          </button>
+          <button id="drawer-tab-npcs" type="button" onclick="app.switchDrawerTab('npcs')"
+            class="py-2 px-1 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1">
+            <span>👥</span><span class="truncate">PNJ</span>
+          </button>
+          <button id="drawer-tab-quests" type="button" onclick="app.switchDrawerTab('quests')"
+            class="py-2 px-1 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1">
+            <span>📜</span><span class="truncate">Quêtes</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenu défilable du tiroir -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+
+        <!-- ONGLET 1 : INVENTAIRE INTERACTIF -->
+        <div id="drawer-panel-inventory" class="space-y-3">
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Appuyez sur un objet pour l'utiliser directement dans votre prochaine action sans quitter l'histoire.
+          </p>
+          <div id="sheet-inventory" class="space-y-2"></div>
+        </div>
+
+        <!-- ONGLET 2 : FICHE & STATS -->
+        <div id="drawer-panel-sheet" class="hidden space-y-5">
+          <div class="space-y-3 bg-surface-950/70 border border-white/10 rounded-2xl p-3.5">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-300">Points de Vie (PV)</span>
+                <span id="sheet-hp-text" class="font-bold text-emerald-400">20 / 20</span>
+              </div>
+              <div class="w-full h-2.5 bg-surface-800 rounded-full overflow-hidden">
+                <div id="sheet-hp-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 100%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-300">Expérience (XP)</span>
+                <span id="sheet-xp-text" class="font-medium text-sky-400">0 / 100</span>
+              </div>
+              <div class="w-full h-2 bg-surface-800 rounded-full overflow-hidden">
+                <div id="sheet-xp-bar" class="h-full bg-sky-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="sheet-levelup-banner" class="hidden bg-amber-500/15 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-200">
+            🎉 <strong id="sheet-unspent-pts">0</strong> point(s) de stat à dépenser ci-dessous !
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Statistiques & Bonus</h4>
+            <div id="sheet-stats" class="grid grid-cols-2 gap-2"></div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Historique des Dés</h4>
+            <div id="sheet-dice-history" class="space-y-1.5"></div>
+          </div>
+        </div>
+
+        <!-- ONGLET 3 : CARNET DE PNJ / RELATIONS -->
+        <div id="drawer-panel-npcs" class="hidden space-y-3">
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Les personnages que vous rencontrez sont automatiquement notés ici avec l'évolution de votre relation.
+          </p>
+          <div id="sheet-npcs-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- ONGLET 4 : JOURNAL DE QUÊTES -->
+        <div id="drawer-panel-quests" class="hidden space-y-3">
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Suivez vos objectifs en cours et les quêtes déjà accomplies.
+          </p>
+          <div id="sheet-quests" class="space-y-2.5 text-xs sm:text-sm text-slate-200"></div>
+        </div>
+
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ==================== MODALE : CONFIGURATION CLÉ API & VITESSE ==================== -->
+  <div id="api-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm">
+    <div class="w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-surface-900 border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl animate-fade-in">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <h3 class="font-display text-lg sm:text-xl font-bold text-white">Configuration Clé API & Vitesse</h3>
+          <p class="text-xs text-slate-400 mt-1">Stockée uniquement sur votre navigateur (localStorage).</p>
+        </div>
+        <button type="button" onclick="app.closeApiModal()" class="p-2 rounded-lg bg-surface-800 hover:bg-surface-700 text-slate-400 hover:text-white transition shrink-0">✕</button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-surface-950/90 border border-white/10 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div class="text-xs text-slate-300">
+          Besoin d'une clé gratuite ? Créez-la en 30s sur Google AI Studio.
+        </div>
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
+          class="shrink-0 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold accent-text transition text-center">
+          Obtenir une clé gratuite ↗
+        </a>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="api-key-input" class="block text-xs font-semibold text-slate-300 mb-1.5">Clé API Google AI Studio</label>
+          <div class="flex gap-2">
+            <input id="api-key-input" type="password" autocomplete="off" placeholder="AIzaSy..."
+              class="flex-1 min-w-0 px-3.5 py-3 rounded-xl bg-surface-950 border border-white/10 text-white text-sm font-mono accent-ring" />
+            <button type="button" onclick="app.toggleApiKeyVisibility()" title="Afficher/Masquer"
+              class="px-3.5 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-sm text-slate-300 transition shrink-0">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+            <label for="api-model-select" class="text-xs font-semibold text-slate-300">Modèle Gemini</label>
+            <button id="btn-detect-models" type="button" onclick="app.detectAvailableModels()"
+              class="px-3 py-1.5 rounded-lg bg-surface-800 hover:bg-surface-700 border accent-border text-[11px] font-semibold accent-text transition active:scale-95">
+              🔍 Détecter mes modèles
+            </button>
+          </div>
+          <select id="api-model-select"
+            class="w-full px-3.5 py-3 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring">
+          </select>
+        </div>
+
+        <div>
+          <label for="api-speed-select" class="block text-xs font-semibold text-slate-300 mb-1.5">Vitesse de réflexion de l'IA</label>
+          <select id="api-speed-select"
+            class="w-full px-3.5 py-3 rounded-xl bg-surface-950 border border-white/10 text-white text-sm accent-ring">
+            <option value="LOW">⚡ Rapide — Recommandé (Réponses fluides 1-2s)</option>
+            <option value="MEDIUM">🧠 Approfondi (Réflexion plus longue)</option>
+          </select>
+        </div>
+
+        <div id="api-test-result" class="hidden p-3.5 rounded-xl text-xs font-medium break-words leading-relaxed"></div>
+      </div>
+
+      <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-white/10">
+        <button id="btn-test-api" type="button" onclick="app.testApiConnection()"
+          class="w-full sm:w-auto px-4 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/15 text-xs sm:text-sm font-semibold text-white transition active:scale-95">
+          ⚡ Tester la connexion
+        </button>
+
+        <div class="flex items-center gap-2 justify-end">
+          <button type="button" onclick="app.clearApiKey()" class="flex-1 sm:flex-none px-4 py-3 rounded-xl bg-surface-800 hover:bg-rose-500/20 text-xs sm:text-sm text-slate-400 hover:text-rose-300 transition">
+            Effacer
+          </button>
+          <button type="button" onclick="app.saveApiSettings()" class="flex-1 sm:flex-none px-5 py-3 rounded-xl accent-bg text-white text-xs sm:text-sm font-semibold shadow-lg hover:brightness-110 transition">
+            Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE : CONFIRMATION & LANCER DE D20 (STYLE BALDUR'S GATE 3) ==================== -->
+  <div id="bg3-dice-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
+    <div class="w-full max-w-md max-h-[92dvh] overflow-y-auto bg3-panel rounded-3xl p-5 sm:p-7 text-center animate-fade-in relative">
+      <div class="text-[11px] font-bold uppercase tracking-[0.2em] accent-text mb-1" id="bg3-stat-header">ÉPREUVE D'AGILITÉ</div>
+      <h3 id="bg3-action-text" class="font-display text-base sm:text-lg font-bold text-white leading-snug mb-3">Action</h3>
+
+      <!-- Encadré dédié : Stat sollicitée & justification -->
+      <div class="mb-3.5 p-3 rounded-2xl bg-surface-950/90 border accent-border text-left flex items-start gap-2.5">
+        <span id="bg3-stat-icon" class="text-xl leading-none shrink-0 mt-0.5">🤸</span>
+        <div class="min-w-0">
+          <div id="bg3-stat-box-title" class="text-xs sm:text-sm font-bold text-white">Stat sollicitée : Agilité (14 → +2)</div>
+          <div id="bg3-stat-reason" class="text-[11px] text-slate-300 mt-0.5 leading-snug">Lancer un objet avec précision</div>
+        </div>
+      </div>
+
+      <p id="bg3-risk-text" class="text-xs text-slate-400 italic mb-4"></p>
+
+      <!-- Écusson DD + Bonus + % Chances -->
+      <div class="grid grid-cols-3 gap-2 mb-5">
+        <div class="bg-surface-950/90 border border-white/10 rounded-2xl p-2.5 flex flex-col items-center justify-center">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">Difficulté</span>
+          <span id="bg3-dc-badge" class="font-display text-2xl font-extrabold text-amber-400 leading-tight mt-0.5">13</span>
+        </div>
+        <div class="bg-surface-950/90 border border-white/10 rounded-2xl p-2.5 flex flex-col items-center justify-center">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">Votre Bonus</span>
+          <span id="bg3-bonus-badge" class="font-display text-2xl font-extrabold text-emerald-400 leading-tight mt-0.5">+2</span>
+        </div>
+        <div class="bg-surface-950/90 border border-white/10 rounded-2xl p-2.5 flex flex-col items-center justify-center">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400">Chances</span>
+          <span id="bg3-chance-badge" class="font-display text-2xl font-extrabold text-sky-300 leading-tight mt-0.5">50%</span>
+        </div>
+      </div>
+
+      <!-- Grand D20 SVG -->
+      <div class="relative w-36 h-36 sm:w-40 sm:h-40 mx-auto my-2 flex items-center justify-center">
+        <div id="bg3-dice-halo" class="absolute inset-3 rounded-full opacity-25 blur-xl transition-all duration-500" style="background: var(--accent);"></div>
+
+        <svg id="bg3-dice-svg" class="w-full h-full accent-text drop-shadow-[0_0_20px_rgba(var(--accent-rgb),0.5)] transition-colors duration-300" viewBox="0 0 120 120" fill="none">
+          <polygon points="60,6 108,33 108,87 60,114 12,87 12,33" fill="rgba(11,15,25,0.96)" stroke="currentColor" stroke-width="3.2"/>
+          <polygon points="60,26 92,78 28,78" fill="rgba(255,255,255,0.03)" stroke="currentColor" stroke-opacity="0.55" stroke-width="1.6"/>
+          <line x1="60" y1="6" x2="60" y2="26" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.5"/>
+          <line x1="108" y1="33" x2="60" y2="26" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.4"/>
+          <line x1="12" y1="33" x2="60" y2="26" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.4"/>
+          <line x1="108" y1="33" x2="92" y2="78" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.4"/>
+          <line x1="12" y1="33" x2="28" y2="78" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.4"/>
+          <line x1="108" y1="87" x2="92" y2="78" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.5"/>
+          <line x1="12" y1="87" x2="28" y2="78" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.5"/>
+          <line x1="60" y1="114" x2="92" y2="78" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.4"/>
+          <line x1="60" y1="114" x2="28" y2="78" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.4"/>
+        </svg>
+
+        <span id="bg3-dice-number" class="absolute font-display text-4xl sm:text-5xl font-extrabold text-white select-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">20</span>
+
+        <div id="bg3-bonus-flyer" class="hidden absolute -bottom-2 px-3 py-1 rounded-full bg-surface-950 border accent-border text-sm font-bold accent-text shadow-lg">
+          +2
+        </div>
+      </div>
+
+      <!-- Confirmation (Étape 1) -->
+      <div id="bg3-confirm-zone" class="mt-4 space-y-4">
+        <p id="bg3-confirm-question" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          Ce choix a une difficulté de <strong class="text-white">DD 13</strong>. Êtes-vous sûr de vouloir tenter ?
+        </p>
+        <div class="flex flex-col-reverse sm:flex-row gap-2.5">
+          <button type="button" onclick="app.cancelBg3Roll()"
+            class="flex-1 py-3.5 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-slate-200 font-semibold text-sm transition active:scale-95">
+            ↩️ Changer d'avis
+          </button>
+          <button id="btn-bg3-roll" type="button" onclick="app.launchBg3Roll()"
+            class="flex-1 py-3.5 rounded-xl accent-bg text-white font-bold text-sm shadow-lg accent-glow hover:brightness-110 transition active:scale-95">
+            🎲 Lancer le D20
+          </button>
+        </div>
+      </div>
+
+      <!-- Résultat & verdict (Étape 2) -->
+      <div id="bg3-result-zone" class="hidden mt-4 space-y-3.5">
+        <div id="bg3-math-line" class="text-xs sm:text-sm text-slate-300 font-medium">D20 (11) + 2 = 13</div>
+        <div id="bg3-verdict-badge" class="inline-block px-5 py-2 rounded-full text-sm font-extrabold tracking-wide shadow-lg">
+          ✅ RÉUSSITE
+        </div>
+
+        <div id="bg3-error-box" class="hidden p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-xs text-rose-200 space-y-2">
+          <div id="bg3-error-msg">Erreur lors de la génération de la conséquence.</div>
+          <button type="button" onclick="app.retryParallelConsequence()" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs">
+            ↻ Réessayer la conséquence
+          </button>
+        </div>
+
+        <button id="btn-bg3-continue" type="button" onclick="app.revealBg3Consequence()" disabled
+          class="w-full py-3.5 rounded-xl accent-bg text-white font-bold text-sm shadow-lg hover:brightness-110 transition disabled:opacity-60 flex items-center justify-center gap-2 active:scale-95">
+          <span>⏳ Le MJ prépare la conséquence...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALE : CONFIRMATION SUPPRESSION ==================== -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div class="w-full max-w-sm bg-surface-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
+      <h3 id="confirm-title" class="text-lg font-bold text-white mb-2">Confirmation</h3>
+      <p id="confirm-text" class="text-sm text-slate-300 mb-6">Êtes-vous sûr ?</p>
+      <div class="flex justify-end gap-2.5">
+        <button type="button" onclick="app.closeConfirm(false)" class="px-4 py-2.5 rounded-xl bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm font-medium transition">Annuler</button>
+        <button type="button" onclick="app.closeConfirm(true)" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold transition">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CONTENEUR DE TOASTS ==================== -->
+  <div id="toast-container" class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none items-end"></div>
+
+  <!-- ==================== LOGIQUE APPLICATIVE COMPLÈTE ==================== -->
+  <script>
+    // ==================== STOCKAGE SÉCURISÉ (IFRAME / MOBILE SAFE) ====================
+    const memoryStorage = {};
+    const safeStorage = {
+      get(key, fallback = null) {
+        try {
+          const val = window.localStorage.getItem(key);
+          return val !== null ? val : fallback;
+        } catch (_) {
+          return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : fallback;
+        }
+      },
+      set(key, value) {
+        try {
+          window.localStorage.setItem(key, String(value));
+        } catch (_) {
+          memoryStorage[key] = String(value);
+        }
+      },
+      remove(key) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (_) {
+          delete memoryStorage[key];
+        }
+      }
+    };
+
+    const STORAGE_KEYS = {
+      API_KEY: "chroniques_ia_api_key",
+      API_MODEL: "chroniques_ia_api_model",
+      API_SPEED: "chroniques_ia_api_speed",
+      DETECTED_MODELS: "chroniques_ia_detected_models",
+      API_STATUS: "chroniques_ia_api_status",
+      PROFILE: "chroniques_ia_profile",
+      ADVENTURES: "chroniques_ia_adventures",
+      SOUND: "chroniques_ia_sound"
+    };
+
+    // ==================== MODÈLES PAR DÉFAUT ====================
+    const DEFAULT_MODELS = [
+      { id: "gemini-3.5-flash-lite", label: "gemini-3.5-flash-lite (⚡ Ultra-rapide — Recommandé)" },
+      { id: "gemini-3.8-flash", label: "gemini-3.8-flash (⚖️ Équilibré & rapide)" },
+      { id: "gemini-4-hydrogen", label: "gemini-4-hydrogen (🚀 Narration riche)" },
+      { id: "gemini-3.1-pro-preview", label: "gemini-3.1-pro-preview (🎭 Narration avancée)" },
+      { id: "gemini-4-neon", label: "gemini-4-neon (👑 Qualité maximale)" }
+    ];
+
+    // ==================== 6 UNIVERS & CLASSES ====================
+    const THEMES = {
+      fantasy: {
+        id: "fantasy",
+        name: "Heroic Fantasy",
+        tagline: "Royaumes anciens, dragons, donjons oubliés et magie arcanique.",
+        accentHex: "#f59e0b",
+        secHex: "#10b981",
+        tags: ["Magie", "Quêtes", "Donjons"],
+        icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path><path d="M13 19l6-6"></path><path d="M16 16l4 4"></path><path d="M19 21l2-2"></path></svg>`,
+        names: ["Kaelen", "Lyra", "Theron", "Isolde", "Aelindra", "Bram"],
+        classes: [
+          { name: "Paladin", desc: "Guerrier sacré en armure lourde, protecteur et charismatique.", hpBonus: 4, primary: ["Force", "Constitution", "Charisme"] },
+          { name: "Mage Arcanique", desc: "Érudit capable de plier les éléments et les arcanes.", hpBonus: 0, primary: ["Intelligence", "Perception", "Charisme"] },
+          { name: "Rôdeur", desc: "Pisteur agile, expert à l'arc et en survie sauvage.", hpBonus: 2, primary: ["Agilité", "Perception", "Constitution"] },
+          { name: "Voleur d'Ombre", desc: "As de l'infiltration, du crochetage et des coups précis.", hpBonus: 1, primary: ["Agilité", "Charisme", "Perception"] }
+        ]
+      },
+      cyberpunk: {
+        id: "cyberpunk",
+        name: "Cyberpunk",
+        tagline: "Mégapoles néon, implants cybernétiques, mégacorpos et piratage neural.",
+        accentHex: "#06b6d4",
+        secHex: "#ec4899",
+        tags: ["Néon", "Implants", "Hacking"],
+        icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line></svg>`,
+        names: ["Nyx", "Vex", "Kiro", "Sora-9", "Jax", "Nova"],
+        classes: [
+          { name: "Netrunner", desc: "Pirate du cyberespace capable de griller systèmes et implants.", hpBonus: 0, primary: ["Intelligence", "Perception", "Agilité"] },
+          { name: "Solo Cybernétique", desc: "Mercenaire augmenté, redoutable en combat urbain.", hpBonus: 4, primary: ["Force", "Constitution", "Agilité"] },
+          { name: "Fixer", desc: "Négociateur influent qui connaît chaque secret de la rue.", hpBonus: 1, primary: ["Charisme", "Perception", "Intelligence"] },
+          { name: "Techie", desc: "Bricoleur de génie spécialisé en drones et gadgets illégaux.", hpBonus: 2, primary: ["Intelligence", "Agilité", "Constitution"] }
+        ]
+      },
+      isekai: {
+        id: "isekai",
+        name: "Isekai",
+        tagline: "Réincarné dans un monde fantastique avec une compétence unique et des guildes.",
+        accentHex: "#8b5cf6",
+        secHex: "#f59e0b",
+        tags: ["Manga", "Guilde", "Pouvoir Unique"],
+        icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+        names: ["Haruto", "Aoi", "Ren", "Yuki", "Sora", "Kaito"],
+        classes: [
+          { name: "Épéiste Béni", desc: "Héros invoqué maniant une lame enchantée à vitesse fulgurante.", hpBonus: 3, primary: ["Force", "Agilité", "Constitution"] },
+          { name: "Archimage Réincarné", desc: "Conserve ses connaissances modernes pour créer des sorts uniques.", hpBonus: 0, primary: ["Intelligence", "Perception", "Charisme"] },
+          { name: "Alchimiste Prodige", desc: "Crée des potions, artefacts et pièges surpuissants.", hpBonus: 1, primary: ["Intelligence", "Agilité", "Perception"] },
+          { name: "Dompteur de Monstres", desc: "Se lie d'amitié avec des créatures légendaires pour combattre.", hpBonus: 2, primary: ["Charisme", "Perception", "Constitution"] }
+        ]
+      },
+      medieval: {
+        id: "medieval",
+        name: "Moyen-Âge",
+        tagline: "Intrigues féodales, tournois, sièges et survie réaliste sans magie.",
+        accentHex: "#c89d54",
+        secHex: "#b91c1c",
+        tags: ["Historique", "Intrigues", "Réaliste"],
+        icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+        names: ["Godefroy", "Aliénor", "Thibault", "Blanche", "Enguerrand", "Margaux"],
+        classes: [
+          { name: "Chevalier Errant", desc: "Combattant noble lié par son honneur et son épée.", hpBonus: 4, primary: ["Force", "Constitution", "Charisme"] },
+          { name: "Espion de Cour", desc: "Maître des murmures, des poisons et des secrets politiques.", hpBonus: 1, primary: ["Charisme", "Agilité", "Perception"] },
+          { name: "Archer Mercenaire", desc: "Tireur d'élite pragmatique rompu aux champs de bataille.", hpBonus: 2, primary: ["Agilité", "Perception", "Force"] },
+          { name: "Apothicaire Érudit", desc: "Savant en médecine, herboristerie et diplomatie.", hpBonus: 1, primary: ["Intelligence", "Perception", "Charisme"] }
+        ]
+      },
+      horror: {
+        id: "horror",
+        name: "Horreur & Enquête",
+        tagline: "Manoirs brumeux, cultes occultes, indices troublants et santé mentale.",
+        accentHex: "#0d9488",
+        secHex: "#dc2626",
+        tags: ["Enquête", "Occulte", "Tension"],
+        icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`,
+        names: ["Arthur", "Clara", "Victor", "Elena", "Hector", "Mireille"],
+        classes: [
+          { name: "Détective Privé", desc: "Esprit vif habitué aux affaires étranges et aux interrogatoires.", hpBonus: 2, primary: ["Perception", "Intelligence", "Charisme"] },
+          { name: "Occultiste", desc: "Spécialiste des grimoires interdits et des rituels anciens.", hpBonus: 0, primary: ["Intelligence", "Perception", "Constitution"] },
+          { name: "Journaliste", desc: "Prêt à tout pour la vérité, rapide et persuasif.", hpBonus: 1, primary: ["Charisme", "Agilité", "Perception"] },
+          { name: "Médecin Légiste", desc: "Calme face à l'horreur, expert en anatomie et premiers soins.", hpBonus: 2, primary: ["Intelligence", "Constitution", "Perception"] }
+        ]
+      },
+      scifi: {
+        id: "scifi",
+        name: "Sci-Fi / Space Opera",
+        tagline: "Vaisseaux stellaires, civilisations extraterrestres et frontières galactiques.",
+        accentHex: "#3b82f6",
+        secHex: "#cbd5e1",
+        tags: ["Espace", "Aliens", "Vaisseaux"],
+        icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>`,
+        names: ["Orion", "Lyss", "Cyrus", "Vega", "Tarek", "Astra"],
+        classes: [
+          { name: "Pilote Contrebandier", desc: "As du pilotage, débrouillard et rapide au blaster.", hpBonus: 2, primary: ["Agilité", "Charisme", "Perception"] },
+          { name: "Ingénieur Quantique", desc: "Répare n'importe quel réacteur et détourne les IA.", hpBonus: 1, primary: ["Intelligence", "Perception", "Constitution"] },
+          { name: "Marine Stellaire", desc: "Soldat d'élite entraîné aux combats en gravité zéro.", hpBonus: 4, primary: ["Force", "Constitution", "Agilité"] },
+          { name: "Xéno-Diplomate", desc: "Maîtrise les langues aliens et désamorce les crises.", hpBonus: 1, primary: ["Charisme", "Intelligence", "Perception"] }
+        ]
+      }
+    };
+
+    const AMBIANCE_OPTIONS = ["Épique", "Sombre", "Humour", "Mystère", "Politique", "Horreur"];
+    const PILLAR_OPTIONS = ["Combat", "Enquête", "Social", "Exploration"];
+    const AVOID_OPTIONS = [
+      "Gore / Horreur graphique",
+      "Phobies (araignées, insectes)",
+      "Romance explicite",
+      "Trahisons d'alliés",
+      "Mort subite injuste"
+    ];
+
+    const STAT_DEFS = [
+      { key: "Force", short: "FOR", icon: "💪", desc: "Puissance physique, mêlée" },
+      { key: "Agilité", short: "AGI", icon: "🤸", desc: "Esquive, discrétion, précision" },
+      { key: "Intelligence", short: "INT", icon: "🧠", desc: "Magie, piratage, savoir" },
+      { key: "Charisme", short: "CHA", icon: "🗣️", desc: "Persuasion, bluff, leadership" },
+      { key: "Constitution", short: "CON", icon: "🛡️", desc: "Points de vie, résistance" },
+      { key: "Perception", short: "PER", icon: "👁️", desc: "Vigilance, fouille, intuition" }
+    ];
+
+    function getStatDef(key) {
+      return STAT_DEFS.find(s => s.key.toLowerCase() === String(key || "").trim().toLowerCase()) || STAT_DEFS[5];
+    }
+
+    const STAT_KEYWORDS = {
+      "Agilité": ["lancer", "lance", "jeter", "jette", "esquiv", "saut", "bond", "courir", "cours", "crochet", "grimp", "discret", "faufil", "tirer", "tire", "viser", "vise", "roulade", "voler", "vole", "acrobat", "gliss", "désarm", "dague", "arc", "flèche", "cacher", "cache", "rapide", "dérob"],
+      "Force": ["frapp", "pouss", "soulev", "bris", "cass", "enfonc", "forc", "port", "tap", "cogn", "écras", "tranch", "attaqu", "lutt", "arrach", "tord", "détrui", "coup de poing", "épée", "hache", "marteau", "défonc"],
+      "Charisme": ["convainc", "ment", "négoci", "sédui", "intimid", "bluff", "charm", "persuad", "marchand", "suppli", "menac", "tromp", "flatt", "discours", "ralli", "calm", "apais", "interrog", "baratin", "sourire", "diplomat"],
+      "Intelligence": ["analys", "pirat", "lire", "lis", "déchiffr", "magi", "sort", "incant", "étudi", "hack", "répar", "fabriqu", "craft", "alchimi", "calcul", "comprend", "savoir", "rituel", "programm", "désamorc", "énigme", "code", "rune", "mécanisme"],
+      "Perception": ["observ", "fouill", "écout", "repér", "cherch", "guett", "scrut", "sentir", "pist", "détect", "surveill", "regard", "inspect", "espionn", "entend", "remarqu", "examin", "indice", "piège", "trace"],
+      "Constitution": ["encaiss", "résist", "boire", "bois", "endur", "apnée", "poison", "froid", "chaleur", "douleur", "fatigu", "support", "surviv", "tenir bon", "souffle"]
+    };
+
+    function detectStatFromText(text) {
+      const lower = String(text || "").toLowerCase().trim();
+      if (lower.length < 3) return null;
+      let bestStat = null;
+      let bestScore = 0;
+      for (const [statKey, words] of Object.entries(STAT_KEYWORDS)) {
+        let score = 0;
+        for (const w of words) {
+          if (lower.includes(w)) score += w.length >= 6 ? 2 : 1;
+        }
+        if (score > bestScore) {
+          bestScore = score;
+          bestStat = statKey;
+        }
+      }
+      return bestStat;
+    }
+
+    // ==================== EFFETS SONORES WEB AUDIO ====================
+    const soundFX = {
+      enabled: true,
+      ctx: null,
+      init() {
+        try {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+          }
+          if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
+        } catch (_) {}
+      },
+      playDiceRoll() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        for (let i = 0; i < 7; i++) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(170 + Math.random() * 280, this.ctx.currentTime + i * 0.08);
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.08 + 0.065);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + i * 0.08);
+          osc.stop(this.ctx.currentTime + i * 0.08 + 0.07);
+        }
+      },
+      playBonusMerge() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(640, now + 0.16);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.19);
+      },
+      playOutcome(type) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = type === "crit_success" ? [523, 659, 784, 1046]
+                    : type === "success" ? [440, 587]
+                    : type === "crit_fail" ? [196, 155, 116]
+                    : [260, 210];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type.includes("success") ? "sine" : "sawtooth";
+          osc.frequency.setValueAtTime(freq, now + idx * 0.085);
+          gain.gain.setValueAtTime(0.085, now + idx * 0.085);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.085 + 0.24);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.085);
+          osc.stop(now + idx * 0.085 + 0.25);
+        });
+      }
+    };
+
+    // ==================== UTILITAIRES ====================
+    function statMod(val) { return Math.floor(((Number(val) || 10) - 10) / 2); }
+    function formatMod(mod) { return mod >= 0 ? `+${mod}` : `${mod}`; }
+
+    function calcSuccessChance(dc, mod) {
+      const needed = Math.max(2, Math.min(20, (parseInt(dc, 10) || 12) - (parseInt(mod, 10) || 0)));
+      const winningFaces = 21 - needed;
+      return Math.round((winningFaces / 20) * 100);
+    }
+
+    function getDcColorClasses(dc) {
+      const val = parseInt(dc, 10) || 12;
+      if (val <= 10) return { pill: "bg-emerald-500/15 border-emerald-500/40 text-emerald-300", text: "text-emerald-400" };
+      if (val <= 14) return { pill: "bg-amber-500/15 border-amber-500/40 text-amber-300", text: "text-amber-400" };
+      if (val <= 17) return { pill: "bg-orange-500/15 border-orange-500/40 text-orange-300", text: "text-orange-400" };
+      return { pill: "bg-rose-500/20 border-rose-500/45 text-rose-300", text: "text-rose-400" };
+    }
+
+    function normalizeStatKey(raw) {
+      const found = STAT_DEFS.find(s => s.key.toLowerCase() === String(raw || "").trim().toLowerCase());
+      return found ? found.key : "Perception";
+    }
+
+    function normalizeChoice(ch) {
+      if (typeof ch === "string") {
+        return { text: ch, needsRoll: false, stat: null, dc: null, risk: "", statReason: "" };
+      }
+      const needsRoll = Boolean(ch && ch.needsRoll);
+      return {
+        text: String((ch && ch.text) || "Continuer").trim(),
+        needsRoll,
+        stat: needsRoll ? normalizeStatKey(ch.stat) : null,
+        dc: needsRoll ? Math.max(5, Math.min(22, parseInt(ch.dc, 10) || 12)) : null,
+        risk: String((ch && ch.risk) || "").trim(),
+        statReason: String((ch && ch.statReason) || "").trim()
+      };
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderRichText(text) {
+      return escapeHtml(text)
+        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em class="text-slate-300 italic">$1</em>')
+        .replace(/\n/g, "<br>");
+    }
+
+    function safeParseAIJson(rawText, fallbackFactory) {
+      if (!rawText || typeof rawText !== "string") return fallbackFactory("");
+      const cleaned = rawText.trim();
+      try { return JSON.parse(cleaned); } catch (_) {}
+
+      const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i);
+      if (fenceMatch && fenceMatch[1]) {
+        try { return JSON.parse(fenceMatch[1].trim()); } catch (_) {}
+      }
+
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const candidate = cleaned.slice(firstBrace, lastBrace + 1);
+        try { return JSON.parse(candidate); } catch (_) {}
+        const noTrailingComma = candidate.replace(/,\s*([}\]])/g, "$1");
+        try { return JSON.parse(noTrailingComma); } catch (_) {}
+      }
+
+      return fallbackFactory(cleaned.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim());
+    }
+
+    // ==================== CLIENT GEMINI API ====================
+    function getStoredApiKey() {
+      return (safeStorage.get(STORAGE_KEYS.API_KEY, "") || "").trim();
+    }
+
+    function getSpeedMode() {
+      const val = (safeStorage.get(STORAGE_KEYS.API_SPEED, "LOW") || "LOW").toUpperCase();
+      return val === "MEDIUM" ? "MEDIUM" : "LOW";
+    }
+
+    function getModelOptionsList() {
+      try {
+        const saved = safeStorage.get(STORAGE_KEYS.DETECTED_MODELS, null);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+      return DEFAULT_MODELS;
+    }
+
+    function getSelectedModel() {
+      const stored = (safeStorage.get(STORAGE_KEYS.API_MODEL, "") || "").trim();
+      const list = getModelOptionsList();
+      if (stored && list.some(m => m.id === stored)) return stored;
+      return list[0].id;
+    }
+
+    function buildThinkingConfig(modelId, speedMode) {
+      const id = String(modelId || "").toLowerCase();
+      if (/gemini-2\.5/.test(id)) {
+        return { thinkingBudget: speedMode === "LOW" ? 0 : 1024 };
+      }
+      if (/gemini-(3|4)/.test(id)) {
+        return { thinkingLevel: speedMode === "MEDIUM" ? "MEDIUM" : "LOW" };
+      }
+      return null;
+    }
+
+    async function callGemini({
+      systemPrompt,
+      contents,
+      expectJson = false,
+      overrideKey = null,
+      overrideModel = null,
+      forceSpeed = null,
+      temperature = 0.8
+    }) {
+      const keyToUse = overrideKey !== null ? overrideKey.trim() : getStoredApiKey();
+      if (!keyToUse) {
+        const err = new Error("Aucune clé API configurée. Ouvrez '⚙️ Clé API' pour coller votre clé gratuite Google AI Studio.");
+        err.isAuthError = true;
+        throw err;
+      }
+
+      const modelToUse = overrideModel || getSelectedModel();
+      const speedMode = forceSpeed || getSpeedMode();
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelToUse)}:generateContent?key=${encodeURIComponent(keyToUse)}`;
+
+      const makePayload = (includeThinking) => {
+        const payload = {
+          contents,
+          generationConfig: { temperature },
+          safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+          ]
+        };
+        if (systemPrompt) {
+          payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+        }
+        if (expectJson) {
+          payload.generationConfig.responseMimeType = "application/json";
+        }
+        if (includeThinking) {
+          const tc = buildThinkingConfig(modelToUse, speedMode);
+          if (tc) payload.generationConfig.thinkingConfig = tc;
+        }
+        return payload;
+      };
+
+      const executeFetch = async (includeThinking) => {
+        const delays = [900, 1800];
+        let lastError = null;
+
+        for (let attempt = 0; attempt <= delays.length; attempt++) {
+          try {
+            const res = await fetch(apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(makePayload(includeThinking))
+            });
+
+            const rawBody = await res.text();
+            let data = null;
+            try { data = JSON.parse(rawBody); } catch (_) {}
+
+            if (!res.ok) {
+              const apiMsg = (data && data.error && data.error.message) || `Erreur HTTP ${res.status}`;
+              if (res.status === 400 && includeThinking && /thinking/i.test(apiMsg)) {
+                return await executeFetch(false);
+              }
+              if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
+                const err = new Error(apiMsg);
+                err.isAuthError = (res.status === 401 || res.status === 403);
+                throw err;
+              }
+              if (attempt < delays.length && (res.status === 429 || res.status >= 500)) {
+                await new Promise(r => setTimeout(r, delays[attempt]));
+                continue;
+              }
+              throw new Error(apiMsg);
+            }
+
+            const text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+            if (!text) throw new Error("L'IA a renvoyé une réponse vide.");
+            return text;
+          } catch (err) {
+            lastError = err;
+            if (err.isAuthError || attempt >= delays.length) throw err;
+            await new Promise(r => setTimeout(r, delays[attempt]));
+          }
+        }
+        throw lastError || new Error("Erreur réseau inconnue.");
+      };
+
+      return await executeFetch(true);
+    }
+
+    // ==================== ÉTAT GLOBAL ====================
+    const state = {
+      profile: {
+        name: "Aventurier",
+        ambiances: ["Épique", "Mystère"],
+        pillars: ["Exploration", "Social"],
+        avoidTags: [],
+        avoidCustom: ""
+      },
+      adventures: [],
+      currentAdventure: null,
+      isThinking: false,
+      lastFailedTask: null,
+      hudActiveStat: null,
+      hudFlashStats: {},
+      hudStatsCollapsed: false,
+      drawerOpen: false,
+      activeDrawerTab: "inventory",
+      selectedInventoryItem: null,
+      creation: {
+        themeId: "fantasy",
+        step: 1,
+        name: "",
+        concept: "",
+        className: "",
+        classHpBonus: 2,
+        stats: { Force: 8, Agilité: 8, Intelligence: 8, Charisme: 8, Constitution: 8, Perception: 8 },
+        pointsLeft: 18
+      },
+      bg3Modal: null,
+      confirmCallback: null
+    };
+
+    // ==================== CONTRÔLEUR PRINCIPAL ====================
+    const app = {
+      init() {
+        this.loadLocalData();
+        this.renderPrefsOptions();
+        this.renderThemesGrid();
+        this.populateModelSelect();
+        this.updateApiStatusIndicator();
+
+        const savedSound = safeStorage.get(STORAGE_KEYS.SOUND, "true");
+        if (savedSound === "false") {
+          soundFX.enabled = false;
+          document.getElementById("icon-sound-on").classList.add("hidden");
+          document.getElementById("icon-sound-off").classList.remove("hidden");
+        }
+
+        document.getElementById("nav-username").textContent = state.profile.name || "Profil";
+
+        // Affiche IMMÉDIATEMENT le tableau de bord « Mes Aventures »
+        this.navigate("dashboard");
+      },
+
+      loadLocalData() {
+        try {
+          const p = safeStorage.get(STORAGE_KEYS.PROFILE, null);
+          if (p) state.profile = { ...state.profile, ...JSON.parse(p) };
+        } catch (_) {}
+
+        try {
+          const a = safeStorage.get(STORAGE_KEYS.ADVENTURES, null);
+          if (a) {
+            const parsed = JSON.parse(a);
+            if (Array.isArray(parsed)) {
+              state.adventures = parsed.map(adv => this.normalizeAdventure(adv));
+            }
+          }
+        } catch (_) {}
+      },
+
+      normalizeAdventure(adv) {
+        if (!adv || typeof adv !== "object") return adv;
+        if (adv.character && adv.character.stats) {
+          const st = adv.character.stats;
+          if (st.Constitution === undefined) st.Constitution = st.Endurance !== undefined ? st.Endurance : 10;
+          if (st.Perception === undefined) st.Perception = st.Chance !== undefined ? st.Chance : 10;
+        }
+        if (adv.character && !Array.isArray(adv.character.quests)) {
+          adv.character.quests = adv.character.currentObjective
+            ? [{ title: adv.character.currentObjective, status: "active" }]
+            : [{ title: "Explorer les environs", status: "active" }];
+        }
+        if (Array.isArray(adv.suggestedActions)) {
+          adv.suggestedActions = adv.suggestedActions.map(normalizeChoice);
+        } else {
+          adv.suggestedActions = [];
+        }
+        if (typeof adv.summary !== "string") adv.summary = "";
+        if (!Array.isArray(adv.npcs)) adv.npcs = [];
+        if (!["rp", "balanced", "action"].includes(adv.pacing)) adv.pacing = "balanced";
+        return adv;
+      },
+
+      persistAdventures() {
+        state.adventures.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        safeStorage.set(STORAGE_KEYS.ADVENTURES, JSON.stringify(state.adventures));
+      },
+
+      navigate(viewId) {
+        ["dashboard", "prefs", "themes", "creation", "game"].forEach(v => {
+          const el = document.getElementById(`view-${v}`);
+          if (el) el.classList.toggle("hidden", v !== viewId);
+        });
+        document.body.classList.toggle("game-active", viewId === "game");
+        if (viewId !== "game") {
+          this.closeQuickDrawer();
+          this.closePacingPopover();
+        }
+        if (viewId === "prefs") this.populatePrefsForm();
+        if (viewId === "dashboard") this.renderDashboard();
+        if (viewId !== "game") window.scrollTo({ top: 0, behavior: "smooth" });
+      },
+
+      setThemeVisual(themeId) {
+        document.body.setAttribute("data-theme", themeId || "fantasy");
+      },
+
+      toggleSound() {
+        soundFX.enabled = !soundFX.enabled;
+        safeStorage.set(STORAGE_KEYS.SOUND, String(soundFX.enabled));
+        document.getElementById("icon-sound-on").classList.toggle("hidden", !soundFX.enabled);
+        document.getElementById("icon-sound-off").classList.toggle("hidden", soundFX.enabled);
+        this.toast(soundFX.enabled ? "Effets sonores activés 🔊" : "Effets sonores coupés 🔇");
+      },
+
+      toast(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        const el = document.createElement("div");
+        const color = type === "error"
+          ? "bg-rose-950/95 border-rose-500/40 text-rose-200"
+          : type === "success"
+          ? "bg-emerald-950/95 border-emerald-500/40 text-emerald-200"
+          : "bg-surface-800/95 border-white/15 text-slate-100";
+        el.className = `px-4 py-3 rounded-xl border text-xs sm:text-sm font-medium shadow-xl backdrop-blur-md animate-fade-in max-w-full ${color}`;
+        el.textContent = message;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = "0";
+          el.style.transition = "opacity 0.3s";
+          setTimeout(() => el.remove(), 300);
+        }, 3000);
+      },
+
+      // ==================== GESTION CLÉ API, VITESSE & DÉTECTION ====================
+      populateModelSelect(modelsOverride = null, selectModelId = null) {
+        const select = document.getElementById("api-model-select");
+        const list = modelsOverride || getModelOptionsList();
+        const current = selectModelId || getSelectedModel();
+
+        select.innerHTML = list.map(m =>
+          `<option value="${escapeHtml(m.id)}">${escapeHtml(m.label || m.id)}</option>`
+        ).join("");
+
+        select.value = list.some(m => m.id === current) ? current : list[0].id;
+      },
+
+      updateApiStatusIndicator(explicitStatus = null) {
+        const dot = document.getElementById("api-status-dot");
+        const hasKey = !!getStoredApiKey();
+        if (explicitStatus) safeStorage.set(STORAGE_KEYS.API_STATUS, explicitStatus);
+        const status = explicitStatus || safeStorage.get(STORAGE_KEYS.API_STATUS, null) || (hasKey ? "ok" : "error");
+
+        dot.className = (hasKey && status === "ok")
+          ? "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.85)] shrink-0"
+          : "w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.85)] shrink-0";
+
+        const dashBanner = document.getElementById("dash-api-banner");
+        if (dashBanner) dashBanner.classList.toggle("hidden", hasKey);
+      },
+
+      openApiModal() {
+        const input = document.getElementById("api-key-input");
+        input.value = getStoredApiKey();
+        input.type = "password";
+        this.populateModelSelect();
+        document.getElementById("api-speed-select").value = getSpeedMode();
+        document.getElementById("api-test-result").classList.add("hidden");
+        document.getElementById("api-modal").classList.remove("hidden");
+      },
+
+      closeApiModal() {
+        document.getElementById("api-modal").classList.add("hidden");
+      },
+
+      toggleApiKeyVisibility() {
+        const input = document.getElementById("api-key-input");
+        input.type = input.type === "password" ? "text" : "password";
+      },
+
+      saveApiSettings() {
+        const keyVal = document.getElementById("api-key-input").value.trim();
+        const modelVal = document.getElementById("api-model-select").value;
+        const speedVal = document.getElementById("api-speed-select").value;
+
+        if (keyVal) {
+          safeStorage.set(STORAGE_KEYS.API_KEY, keyVal);
+          safeStorage.set(STORAGE_KEYS.API_STATUS, "ok");
+        } else {
+          safeStorage.remove(STORAGE_KEYS.API_KEY);
+          safeStorage.set(STORAGE_KEYS.API_STATUS, "error");
+        }
+        if (modelVal) safeStorage.set(STORAGE_KEYS.API_MODEL, modelVal);
+        safeStorage.set(STORAGE_KEYS.API_SPEED, speedVal);
+
+        this.updateApiStatusIndicator();
+        this.closeApiModal();
+        this.toast(`Enregistré : ${modelVal} (${speedVal === "LOW" ? "⚡ Rapide" : "🧠 Approfondi"})`, "success");
+      },
+
+      clearApiKey() {
+        safeStorage.remove(STORAGE_KEYS.API_KEY);
+        safeStorage.remove(STORAGE_KEYS.DETECTED_MODELS);
+        safeStorage.set(STORAGE_KEYS.API_MODEL, DEFAULT_MODELS[0].id);
+        safeStorage.set(STORAGE_KEYS.API_SPEED, "LOW");
+        safeStorage.set(STORAGE_KEYS.API_STATUS, "error");
+        document.getElementById("api-key-input").value = "";
+        document.getElementById("api-speed-select").value = "LOW";
+        this.populateModelSelect(DEFAULT_MODELS, DEFAULT_MODELS[0].id);
+        document.getElementById("api-test-result").classList.add("hidden");
+        this.updateApiStatusIndicator("error");
+        this.toast("Clé API effacée.");
+      },
+
+      async detectAvailableModels() {
+        const keyVal = document.getElementById("api-key-input").value.trim();
+        const resultBox = document.getElementById("api-test-result");
+        const btn = document.getElementById("btn-detect-models");
+
+        if (!keyVal) {
+          resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-rose-500/15 border border-rose-500/40 text-rose-200";
+          resultBox.textContent = "❌ Collez d'abord votre clé API avant de détecter vos modèles.";
+          resultBox.classList.remove("hidden");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Détection...";
+        resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-surface-950 border border-white/10 text-slate-300";
+        resultBox.textContent = "Interrogation de Google AI Studio...";
+        resultBox.classList.remove("hidden");
+
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(keyVal)}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (!res.ok) throw new Error((data && data.error && data.error.message) || `Erreur HTTP ${res.status}`);
+
+          const excluded = /(embedding|tts|imagen|veo|lyria|aqa|bisection|robotics|computer-use)/i;
+          const validModels = (data.models || [])
+            .filter(m =>
+              Array.isArray(m.supportedGenerationMethods) &&
+              m.supportedGenerationMethods.includes("generateContent") &&
+              !excluded.test(m.name || "")
+            )
+            .map(m => {
+              const id = String(m.name || "").replace(/^models\//, "");
+              const label = m.displayName && m.displayName !== id ? `${id} (${m.displayName})` : id;
+              return { id, label };
+            });
+
+          if (!validModels.length) throw new Error("Aucun modèle generateContent trouvé sur ce compte.");
+
+          validModels.sort((a, b) => {
+            const score = (id) => {
+              if (id === "gemini-3.5-flash-lite") return 110;
+              if (id === "gemini-3.8-flash") return 100;
+              if (id === "gemini-4-hydrogen") return 95;
+              if (id.includes("flash-lite")) return 90;
+              if (id.includes("flash")) return 80;
+              if (id.includes("3.1-pro") || id.includes("4-neon")) return 70;
+              return 20;
+            };
+            return score(b.id) - score(a.id);
+          });
+
+          safeStorage.set(STORAGE_KEYS.API_KEY, keyVal);
+          safeStorage.set(STORAGE_KEYS.DETECTED_MODELS, JSON.stringify(validModels));
+          const preferred = validModels[0].id;
+          safeStorage.set(STORAGE_KEYS.API_MODEL, preferred);
+
+          this.populateModelSelect(validModels, preferred);
+          this.updateApiStatusIndicator("ok");
+
+          resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-emerald-500/15 border border-emerald-500/40 text-emerald-200";
+          resultBox.textContent = `✅ ${validModels.length} modèle(s) détecté(s) ! Sélectionné : ${preferred}.`;
+        } catch (err) {
+          this.updateApiStatusIndicator("error");
+          resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-rose-500/15 border border-rose-500/40 text-rose-200";
+          resultBox.textContent = `❌ Erreur : ${err.message}`;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "🔍 Détecter mes modèles";
+        }
+      },
+
+      async testApiConnection() {
+        const keyVal = document.getElementById("api-key-input").value.trim();
+        const modelVal = document.getElementById("api-model-select").value;
+        const speedVal = document.getElementById("api-speed-select").value;
+        const resultBox = document.getElementById("api-test-result");
+        const btn = document.getElementById("btn-test-api");
+
+        btn.disabled = true;
+        btn.textContent = "Test...";
+        resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-surface-950 border border-white/10 text-slate-300";
+        resultBox.textContent = `Test rapide sur ${modelVal}...`;
+        resultBox.classList.remove("hidden");
+
+        const t0 = performance.now();
+        try {
+          const reply = await callGemini({
+            contents: [{ role: "user", parts: [{ text: "Réponds juste OK" }] }],
+            overrideKey: keyVal,
+            overrideModel: modelVal,
+            forceSpeed: "LOW",
+            temperature: 0.1
+          });
+          const elapsedSec = ((performance.now() - t0) / 1000).toFixed(2);
+
+          safeStorage.set(STORAGE_KEYS.API_KEY, keyVal);
+          safeStorage.set(STORAGE_KEYS.API_MODEL, modelVal);
+          safeStorage.set(STORAGE_KEYS.API_SPEED, speedVal);
+          this.updateApiStatusIndicator("ok");
+
+          resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-emerald-500/15 border border-emerald-500/40 text-emerald-200";
+          resultBox.textContent = `✅ Connecté en ${elapsedSec}s ! (${modelVal} : "${reply.trim().slice(0, 30)}")`;
+        } catch (err) {
+          this.updateApiStatusIndicator("error");
+          resultBox.className = "p-3.5 rounded-xl text-xs font-medium bg-rose-500/15 border border-rose-500/40 text-rose-200";
+          resultBox.textContent = `❌ Échec de connexion : ${err.message}`;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "⚡ Tester la connexion";
+        }
+      },
+
+      // ==================== PRÉFÉRENCES & EXPORT/IMPORT ====================
+      renderPrefsOptions() {
+        const makePills = (containerId, list, group) => {
+          document.getElementById(containerId).innerHTML = list.map(item => `
+            <button type="button" data-group="${group}" data-val="${escapeHtml(item)}"
+              onclick="app.togglePrefPill(this)"
+              class="pref-pill px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-white/10 bg-surface-950 text-slate-300 hover:border-white/30 transition">
+              ${escapeHtml(item)}
+            </button>
+          `).join("");
+        };
+        makePills("pref-ambiances-container", AMBIANCE_OPTIONS, "ambiances");
+        makePills("pref-pillars-container", PILLAR_OPTIONS, "pillars");
+        makePills("pref-avoid-tags", AVOID_OPTIONS, "avoidTags");
+      },
+
+      populatePrefsForm() {
+        document.getElementById("pref-name").value = state.profile.name || "";
+        document.getElementById("pref-avoid-custom").value = state.profile.avoidCustom || "";
+        document.querySelectorAll(".pref-pill").forEach(btn => {
+          const grp = btn.dataset.group;
+          const active = (state.profile[grp] || []).includes(btn.dataset.val);
+          this.stylePrefPill(btn, active, grp === "avoidTags");
+        });
+      },
+
+      togglePrefPill(btn) {
+        const grp = btn.dataset.group;
+        const val = btn.dataset.val;
+        const arr = state.profile[grp] || [];
+        const idx = arr.indexOf(val);
+        if (idx >= 0) arr.splice(idx, 1);
+        else arr.push(val);
+        state.profile[grp] = arr;
+        this.stylePrefPill(btn, idx < 0, grp === "avoidTags");
+      },
+
+      stylePrefPill(btn, active, isAvoid) {
+        if (active) {
+          btn.className = isAvoid
+            ? "pref-pill px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-rose-500/60 bg-rose-500/20 text-rose-200 transition"
+            : "pref-pill px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border accent-border bg-white/10 text-white shadow transition";
+        } else {
+          btn.className = "pref-pill px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-white/10 bg-surface-950 text-slate-400 hover:text-slate-200 transition";
+        }
+      },
+
+      savePreferences() {
+        state.profile.name = document.getElementById("pref-name").value.trim() || "Aventurier";
+        state.profile.avoidCustom = document.getElementById("pref-avoid-custom").value.trim();
+        safeStorage.set(STORAGE_KEYS.PROFILE, JSON.stringify(state.profile));
+        document.getElementById("nav-username").textContent = state.profile.name;
+        this.toast("Profil enregistré !", "success");
+        this.navigate("dashboard");
+      },
+
+      exportSaveJson() {
+        const payload = { version: 4, exportedAt: new Date().toISOString(), profile: state.profile, adventures: state.adventures };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `chroniques-ia-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.toast("Sauvegarde exportée en JSON !", "success");
+      },
+
+      importSaveJson(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (data.profile) {
+              state.profile = { ...state.profile, ...data.profile };
+              safeStorage.set(STORAGE_KEYS.PROFILE, JSON.stringify(state.profile));
+              document.getElementById("nav-username").textContent = state.profile.name;
+            }
+            if (Array.isArray(data.adventures)) {
+              state.adventures = data.adventures.map(adv => this.normalizeAdventure(adv));
+              this.persistAdventures();
+            }
+            this.toast("Sauvegarde importée !", "success");
+            this.navigate("dashboard");
+          } catch (_) {
+            this.toast("Fichier JSON invalide.", "error");
+          }
+          event.target.value = "";
+        };
+        reader.readAsText(file);
+      },
+
+      // ==================== TABLEAU DE BORD ====================
+      renderDashboard() {
+        document.getElementById("dash-player-name").textContent = state.profile.name || "Aventurier";
+        document.getElementById("dash-count").textContent = state.adventures.length;
+        document.getElementById("dash-api-banner").classList.toggle("hidden", !!getStoredApiKey());
+
+        const badges = [...(state.profile.ambiances || []), ...(state.profile.pillars || [])].slice(0, 6);
+        document.getElementById("dash-prefs-badges").innerHTML = badges.map(b =>
+          `<span class="px-2.5 py-1 rounded-lg bg-surface-800 border border-white/10 text-[11px] text-slate-300">${escapeHtml(b)}</span>`
+        ).join("");
+
+        const grid = document.getElementById("adventures-grid");
+        const empty = document.getElementById("adventures-empty");
+
+        if (state.adventures.length === 0) {
+          grid.innerHTML = "";
+          empty.classList.remove("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+
+        grid.innerHTML = state.adventures.map(adv => {
+          const theme = THEMES[adv.themeId] || THEMES.fantasy;
+          const c = adv.character;
+          const hpPct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+          const lastMsg = adv.messages && adv.messages.length ? adv.messages[adv.messages.length - 1].text : "";
+          const dateStr = adv.updatedAt ? new Date(adv.updatedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+          return `
+            <div class="bg-surface-900/90 border border-white/10 hover:border-white/25 rounded-3xl p-5 flex flex-col justify-between gap-4 transition shadow-lg group">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold" style="background:${theme.accentHex}22; color:${theme.accentHex}; border:1px solid ${theme.accentHex}44;">
+                    ${escapeHtml(theme.name)}
+                  </span>
+                  <span class="text-[11px] text-slate-500">${dateStr}</span>
+                </div>
+                <h3 class="font-display font-bold text-lg text-white group-hover:opacity-90 transition line-clamp-1">${escapeHtml(adv.title)}</h3>
+                <p class="text-xs text-slate-400 mt-1">
+                  <strong class="text-slate-200">${escapeHtml(c.name)}</strong> • ${escapeHtml(c.className)} • Niv. ${c.level}
+                </p>
+
+                <div class="mt-3">
+                  <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                    <span>PV</span>
+                    <span class="text-emerald-400 font-semibold">${c.hp} / ${c.maxHp}</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-surface-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 rounded-full" style="width:${hpPct}%"></div>
+                  </div>
+                </div>
+
+                <p class="text-xs text-slate-400 mt-3 line-clamp-2 leading-relaxed">${escapeHtml(String(lastMsg).replace(/\*/g, ""))}</p>
+              </div>
+
+              <div class="flex items-center gap-2 pt-2 border-t border-white/5">
+                <button type="button" onclick="app.openAdventure('${adv.id}')"
+                  class="flex-1 py-3 rounded-xl bg-surface-800 hover:bg-white/15 text-white text-xs font-semibold transition">
+                  Reprendre l'aventure →
+                </button>
+                <button type="button" onclick="app.askDeleteAdventure('${adv.id}', '${escapeHtml(adv.title).replace(/'/g, "\\'")}')"
+                  title="Supprimer cette partie"
+                  class="p-3 rounded-xl bg-surface-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      },
+
+      askDeleteAdventure(advId, title) {
+        document.getElementById("confirm-title").textContent = "Supprimer cette aventure ?";
+        document.getElementById("confirm-text").textContent = `La chronique "${title}" sera définitivement supprimée.`;
+        document.getElementById("confirm-modal").classList.remove("hidden");
+        state.confirmCallback = () => {
+          state.adventures = state.adventures.filter(a => a.id !== advId);
+          this.persistAdventures();
+          this.renderDashboard();
+          this.toast("Aventure supprimée.");
+        };
+      },
+
+      closeConfirm(confirmed) {
+        document.getElementById("confirm-modal").classList.add("hidden");
+        if (confirmed && state.confirmCallback) state.confirmCallback();
+        state.confirmCallback = null;
+      },
+
+      // ==================== UNIVERS & CRÉATION ====================
+      renderThemesGrid() {
+        document.getElementById("themes-grid").innerHTML = Object.values(THEMES).map(t => `
+          <button type="button" onclick="app.startCreation('${t.id}')"
+            class="text-left bg-surface-900/90 hover:bg-surface-800/90 border border-white/10 rounded-3xl p-5 sm:p-6 transition duration-300 group relative overflow-hidden shadow-xl hover:-translate-y-1">
+            <div class="absolute inset-x-0 top-0 h-1" style="background: linear-gradient(90deg, ${t.accentHex}, ${t.secHex});"></div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition group-hover:scale-110"
+              style="background:${t.accentHex}20; color:${t.accentHex}; border:1px solid ${t.accentHex}44;">
+              ${t.icon}
+            </div>
+            <h3 class="font-display font-bold text-xl text-white mb-1.5">${t.name}</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">${t.tagline}</p>
+            <div class="flex flex-wrap gap-1.5">
+              ${t.tags.map(tag => `<span class="px-2.5 py-1 rounded-lg bg-surface-950 border border-white/10 text-[11px] text-slate-300">${tag}</span>`).join("")}
+            </div>
+          </button>
+        `).join("");
+      },
+
+      startCreation(themeId) {
+        const theme = THEMES[themeId] || THEMES.fantasy;
+        this.setThemeVisual(theme.id);
+        state.creation = {
+          themeId: theme.id,
+          step: 1,
+          name: "",
+          concept: "",
+          className: theme.classes[0].name,
+          classHpBonus: theme.classes[0].hpBonus,
+          stats: { Force: 8, Agilité: 8, Intelligence: 8, Charisme: 8, Constitution: 8, Perception: 8 },
+          pointsLeft: 18
+        };
+
+        document.getElementById("creation-theme-badge").textContent = theme.name;
+        document.getElementById("char-name-input").value = "";
+        document.getElementById("char-concept-input").value = "";
+        document.getElementById("char-custom-class").value = "";
+        document.getElementById("creation-error-box").classList.add("hidden");
+
+        this.renderCreationClasses();
+        this.renderCreationStats();
+        this.goCreationStep(1);
+        this.navigate("creation");
+      },
+
+      suggestRandomName() {
+        const theme = THEMES[state.creation.themeId] || THEMES.fantasy;
+        document.getElementById("char-name-input").value = theme.names[Math.floor(Math.random() * theme.names.length)];
+      },
+
+      renderCreationClasses() {
+        const theme = THEMES[state.creation.themeId] || THEMES.fantasy;
+        document.getElementById("creation-classes-grid").innerHTML = theme.classes.map((cls, idx) => {
+          const selected = state.creation.className === cls.name;
+          return `
+            <button type="button" onclick="app.selectPresetClass(${idx})"
+              class="text-left p-4 rounded-2xl border transition ${selected ? "accent-border bg-white/10 shadow-lg" : "border-white/10 bg-surface-950/70 hover:border-white/25"}">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="font-bold text-sm text-white">${cls.name}</span>
+                <span class="text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300">+${cls.hpBonus} PV</span>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed mb-2">${cls.desc}</p>
+              <div class="text-[11px] accent-text font-medium">Atouts : ${cls.primary.join(", ")}</div>
+            </button>
+          `;
+        }).join("");
+      },
+
+      selectPresetClass(idx) {
+        const cls = THEMES[state.creation.themeId].classes[idx];
+        state.creation.className = cls.name;
+        state.creation.classHpBonus = cls.hpBonus;
+        document.getElementById("char-custom-class").value = "";
+        this.renderCreationClasses();
+        this.updateHpPreview();
+      },
+
+      selectCustomClass(val) {
+        if (val.trim()) {
+          state.creation.className = val.trim();
+          state.creation.classHpBonus = 2;
+          this.renderCreationClasses();
+          this.updateHpPreview();
+        }
+      },
+
+      renderCreationStats() {
+        document.getElementById("stat-points-left").textContent = state.creation.pointsLeft;
+        this.updateHpPreview();
+
+        document.getElementById("creation-stats-grid").innerHTML = STAT_DEFS.map(s => {
+          const val = state.creation.stats[s.key];
+          const mod = statMod(val);
+          return `
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-surface-950/80 border border-white/10 gap-2">
+              <div class="min-w-0">
+                <div class="font-semibold text-sm text-white flex items-center gap-2">
+                  <span>${s.icon} ${s.key}</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-surface-800 ${mod >= 0 ? "text-emerald-400" : "text-rose-400"}">${formatMod(mod)}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 truncate">${s.desc}</div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button type="button" onclick="app.adjustCreationStat('${s.key}', -1)" ${val <= 6 ? "disabled" : ""}
+                  class="w-9 h-9 rounded-lg bg-surface-800 hover:bg-surface-700 disabled:opacity-30 text-white font-bold transition">−</button>
+                <span class="w-7 text-center font-bold text-white text-base">${val}</span>
+                <button type="button" onclick="app.adjustCreationStat('${s.key}', 1)" ${val >= 18 || state.creation.pointsLeft <= 0 ? "disabled" : ""}
+                  class="w-9 h-9 rounded-lg bg-surface-800 hover:bg-surface-700 disabled:opacity-30 text-white font-bold transition">+</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      },
+
+      adjustCreationStat(key, delta) {
+        const cur = state.creation.stats[key];
+        if (delta > 0 && (state.creation.pointsLeft <= 0 || cur >= 18)) return;
+        if (delta < 0 && cur <= 6) return;
+        state.creation.stats[key] += delta;
+        state.creation.pointsLeft -= delta;
+        this.renderCreationStats();
+      },
+
+      autoAllocateStats() {
+        const theme = THEMES[state.creation.themeId];
+        const matched = theme.classes.find(c => c.name === state.creation.className) || theme.classes[0];
+        const base = { Force: 8, Agilité: 8, Intelligence: 8, Charisme: 8, Constitution: 8, Perception: 8 };
+        let pts = 18;
+        [6, 5, 4].forEach((w, i) => { base[matched.primary[i]] += w; pts -= w; });
+        const others = STAT_DEFS.map(s => s.key).filter(k => !matched.primary.includes(k));
+        let idx = 0;
+        while (pts > 0) { base[others[idx % others.length]] += 1; pts--; idx++; }
+        state.creation.stats = base;
+        state.creation.pointsLeft = 0;
+        this.renderCreationStats();
+      },
+
+      updateHpPreview() {
+        const conMod = statMod(state.creation.stats.Constitution);
+        const maxHp = Math.max(12, 20 + conMod * 3 + state.creation.classHpBonus);
+        document.getElementById("creation-hp-preview").textContent = `${maxHp} PV`;
+      },
+
+      goCreationStep(step) {
+        if (step === 2) {
+          const name = document.getElementById("char-name-input").value.trim();
+          if (!name) { this.toast("Veuillez nommer votre personnage.", "error"); return; }
+          state.creation.name = name;
+          state.creation.concept = document.getElementById("char-concept-input").value.trim();
+        }
+        if (step === 3 && !state.creation.className) {
+          this.toast("Veuillez choisir ou saisir une classe.", "error");
+          return;
+        }
+
+        state.creation.step = step;
+        [1, 2, 3].forEach(n => {
+          document.getElementById(`creation-step-${n}`).classList.toggle("hidden", n !== step);
+          document.getElementById(`step-pill-${n}`).className = n === step
+            ? "px-2.5 sm:px-3 py-1 rounded-full accent-bg text-white shadow"
+            : n < step
+            ? "px-2.5 sm:px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+            : "px-2.5 sm:px-3 py-1 rounded-full bg-surface-800 text-slate-400";
+        });
+
+        const theme = THEMES[state.creation.themeId];
+        const msgEl = document.getElementById("creation-gm-message");
+        if (step === 1) {
+          msgEl.innerHTML = renderRichText(`Bienvenue dans **${theme.name}**, ${state.profile.name || "Aventurier"} ! Quel est le nom de votre personnage et son trait marquant ?`);
+        } else if (step === 2) {
+          msgEl.innerHTML = renderRichText(`Enchanté, **${state.creation.name}** ! Quelle classe ou vocation souhaitez-vous incarner ?`);
+        } else if (step === 3) {
+          msgEl.innerHTML = renderRichText(`Répartissez vos **18 points** pour définir vos bonus aux jets de D20 (de -1 à +4) et vos PV max.`);
+        }
+      },
+
+      async finalizeCharacterAndStart() {
+        const errBox = document.getElementById("creation-error-box");
+        errBox.classList.add("hidden");
+        const btn = document.getElementById("btn-launch-adventure");
+        btn.disabled = true;
+        btn.innerHTML = `<span>⚡ Génération de l'introduction...</span>`;
+
+        const c = state.creation;
+        const theme = THEMES[c.themeId];
+        const conMod = statMod(c.stats.Constitution);
+        const computedHp = Math.max(12, 20 + conMod * 3 + c.classHpBonus);
+
+        const character = {
+          name: c.name,
+          concept: c.concept,
+          className: c.className,
+          level: 1,
+          hp: computedHp,
+          maxHp: computedHp,
+          xp: 0,
+          unspentStatPoints: 0,
+          stats: { ...c.stats },
+          inventory: [],
+          quests: [{ title: "Découvrir la situation initiale", status: "active" }]
+        };
+
+        try {
+          const rawReply = await callGemini({
+            systemPrompt: this.buildGMSystemPrompt(theme, character, "", "balanced", []),
+            expectJson: true,
+            contents: [{
+              role: "user",
+              parts: [{
+                text: `Démarre cette aventure solo. Réponds UNIQUEMENT en JSON valide :
+{
+  "adventureTitle": "Titre évocateur court",
+  "startingItems": ["Objet 1", "Objet 2", "Objet 3"],
+  "initialQuest": "Quête principale initiale claire",
+  "summary": "Résumé en 1 phrase du point de départ",
+  "openingNarrative": "Scène d'introduction immersive en 2 paragraphes courts qui pose une ambiance vivante (avec au moins un PNJ présent ou proche à découvrir).",
+  "npcs": [
+    { "name": "Nom d'un PNJ présent (si pertinent)", "role": "Rôle et trait marquant", "affinity": "Neutre", "note": "Première impression" }
+  ],
+  "choices": [
+    { "text": "Choix 1 (roleplay / discussion / découverte calme)", "needsRoll": false, "stat": null, "dc": null, "statReason": "", "risk": "" },
+    { "text": "Choix 2 (action directe ou curiosité)", "needsRoll": false, "stat": null, "dc": null, "statReason": "", "risk": "" },
+    { "text": "Choix 3 (action risquée nécessitant un jet)", "needsRoll": true, "stat": "Perception", "dc": 11, "statReason": "Repérer un détail caché.", "risk": "Ce qui arrive en cas d'échec" }
+  ]
+}`
+              }]
+            }]
+          });
+
+          const intro = safeParseAIJson(rawReply, (txt) => ({
+            adventureTitle: `Les Chroniques de ${character.name}`,
+            startingItems: ["Équipement de base", "Rations", "Objet personnel"],
+            initialQuest: "Explorer les environs",
+            summary: `Début de l'aventure de ${character.name} dans ${theme.name}.`,
+            openingNarrative: txt || `Vous entrez dans **${theme.name}** en tant que **${character.className}**.`,
+            choices: [
+              { text: "Inspecter les alentours à la recherche d'indices", needsRoll: true, stat: "Perception", dc: 11, statReason: "Repérer les détails cachés.", risk: "Vous pourriez manquer un détail crucial." },
+              { text: "Aborder un passant avec assurance", needsRoll: true, stat: "Charisme", dc: 12, statReason: "Gagner sa confiance.", risk: "Il pourrait se méfier de vous." },
+              { text: "Avancer prudemment et observer", needsRoll: false, stat: null, dc: null, statReason: "", risk: "" }
+            ]
+          }));
+
+          character.inventory = Array.isArray(intro.startingItems) && intro.startingItems.length
+            ? intro.startingItems
+            : ["Équipement de base", "Rations"];
+          character.quests = [{ title: intro.initialQuest || "Découvrir votre quête", status: "active" }];
+
+          const advId = "adv_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+          const choices = Array.isArray(intro.choices) && intro.choices.length
+            ? intro.choices.slice(0, 3).map(normalizeChoice)
+            : [{ text: "Observer les environs", needsRoll: true, stat: "Perception", dc: 11, statReason: "Scruter la zone.", risk: "Un danger pourrait vous échapper." }];
+
+          const adventure = {
+            id: advId,
+            title: intro.adventureTitle || `Chroniques de ${character.name}`,
+            themeId: c.themeId,
+            summary: intro.summary || "",
+            pacing: "balanced",
+            npcs: Array.isArray(intro.npcs) ? intro.npcs.filter(n => n && n.name) : [],
+            character,
+            messages: [{ role: "gm", text: intro.openingNarrative || "Votre aventure commence...", timestamp: Date.now() }],
+            suggestedActions: choices,
+            diceHistory: [],
+            updatedAt: Date.now()
+          };
+
+          state.adventures.unshift(adventure);
+          this.persistAdventures();
+          this.updateApiStatusIndicator("ok");
+          this.openAdventure(advId);
+        } catch (err) {
+          this.updateApiStatusIndicator("error");
+          document.getElementById("creation-error-text").textContent = `Impossible de lancer l'aventure : ${err.message}`;
+          errBox.classList.remove("hidden");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = `<span>Commencer l'Aventure</span><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+        }
+      },
+
+      // ==================== INTERFACE DE JEU ====================
+      openAdventure(advId) {
+        const adv = state.adventures.find(a => a.id === advId);
+        if (!adv) return;
+        state.currentAdventure = this.normalizeAdventure(adv);
+        state.lastFailedTask = null;
+        state.hudActiveStat = null;
+        document.getElementById("game-error-banner").classList.add("hidden");
+
+        const theme = THEMES[adv.themeId] || THEMES.fantasy;
+        this.setThemeVisual(adv.themeId);
+        document.getElementById("game-theme-tag").textContent = theme.name;
+        document.getElementById("game-title").textContent = adv.title;
+
+        this.renderCharacterSheet();
+        this.renderPacingButtons();
+        this.closeQuickDrawer();
+        this.closePacingPopover();
+        this.renderChatLog();
+        this.renderSuggestedActions();
+        this.navigate("game");
+        setTimeout(() => this.scrollToLatestTurn(false), 50);
+      },
+
+      toggleHudStats() {
+        state.hudStatsCollapsed = !state.hudStatsCollapsed;
+        const wrap = document.getElementById("hud-stats-wrapper");
+        const icon = document.getElementById("hud-stats-toggle-icon");
+        if (wrap) wrap.classList.toggle("hidden", state.hudStatsCollapsed);
+        if (icon) icon.textContent = state.hudStatsCollapsed ? "▾" : "▴";
+      },
+
+      handleChatScroll() {
+        const log = document.getElementById("chat-log");
+        const btn = document.getElementById("btn-scroll-bottom");
+        if (!log || !btn) return;
+        const distanceFromBottom = log.scrollHeight - log.scrollTop - log.clientHeight;
+        btn.classList.toggle("hidden", distanceFromBottom <= 130);
+      },
+
+      scrollToLatestTurn(smooth = true) {
+        const log = document.getElementById("chat-log");
+        if (!log) return;
+        log.scrollTo({ top: log.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+        const btn = document.getElementById("btn-scroll-bottom");
+        if (btn) btn.classList.add("hidden");
+      },
+
+      togglePacingPopover() {
+        const pop = document.getElementById("pacing-popover");
+        if (!pop) return;
+        pop.classList.toggle("hidden");
+      },
+
+      closePacingPopover() {
+        const pop = document.getElementById("pacing-popover");
+        if (pop) pop.classList.add("hidden");
+      },
+
+      setPacing(mode, closePopover = false) {
+        if (!state.currentAdventure || !["rp", "balanced", "action"].includes(mode)) return;
+        state.currentAdventure.pacing = mode;
+        this.renderPacingButtons();
+        this.saveCurrentAdventure();
+        if (closePopover) this.closePacingPopover();
+        const labels = {
+          rp: "🎭 Rythme Détente & RP activé (discussions, humour, découvertes)",
+          balanced: "⚖️ Rythme Équilibré activé",
+          action: "⚔️ Rythme Action activé (tension et défis)"
+        };
+        this.toast(labels[mode]);
+      },
+
+      renderPacingButtons() {
+        const current = (state.currentAdventure && state.currentAdventure.pacing) || "balanced";
+        const meta = {
+          rp: { icon: "🎭", label: "Détente" },
+          balanced: { icon: "⚖️", label: "Équilibré" },
+          action: { icon: "⚔️", label: "Action" }
+        }[current] || { icon: "⚖️", label: "Équilibré" };
+
+        const iconEl = document.getElementById("dock-pacing-icon");
+        const labelEl = document.getElementById("dock-pacing-label");
+        if (iconEl) iconEl.textContent = meta.icon;
+        if (labelEl) labelEl.textContent = meta.label;
+
+        document.querySelectorAll(".pacing-btn").forEach(btn => {
+          const active = btn.dataset.pacing === current;
+          btn.className = active
+            ? "pacing-btn w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between border accent-border bg-white/10 text-white shadow transition"
+            : "pacing-btn w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between border border-transparent text-slate-300 hover:bg-surface-800 hover:text-white transition";
+        });
+      },
+
+      openQuickDrawer(tab = "inventory") {
+        this.closePacingPopover();
+        state.drawerOpen = true;
+        this.switchDrawerTab(tab);
+        document.getElementById("drawer-backdrop").classList.remove("hidden");
+        const drawer = document.getElementById("quick-drawer");
+        drawer.classList.remove("quick-drawer-closed");
+        drawer.classList.add("quick-drawer-open");
+      },
+
+      closeQuickDrawer() {
+        state.drawerOpen = false;
+        state.selectedInventoryItem = null;
+        const backdrop = document.getElementById("drawer-backdrop");
+        const drawer = document.getElementById("quick-drawer");
+        if (backdrop) backdrop.classList.add("hidden");
+        if (drawer) {
+          drawer.classList.remove("quick-drawer-open");
+          drawer.classList.add("quick-drawer-closed");
+        }
+      },
+
+      switchDrawerTab(tab) {
+        const valid = ["inventory", "sheet", "npcs", "quests"];
+        state.activeDrawerTab = valid.includes(tab) ? tab : "inventory";
+        valid.forEach(t => {
+          const panel = document.getElementById(`drawer-panel-${t}`);
+          const btn = document.getElementById(`drawer-tab-${t}`);
+          const active = t === state.activeDrawerTab;
+          if (panel) panel.classList.toggle("hidden", !active);
+          if (btn) {
+            btn.className = active
+              ? "py-2 px-1 rounded-lg text-[11px] font-semibold accent-bg text-white shadow transition flex items-center justify-center gap-1"
+              : "py-2 px-1 rounded-lg text-[11px] font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1";
+          }
+        });
+      },
+
+      selectInventoryItem(idx) {
+        state.selectedInventoryItem = state.selectedInventoryItem === idx ? null : idx;
+        this.renderInventoryList();
+      },
+
+      useInventoryItemInAction(idx) {
+        const c = state.currentAdventure && state.currentAdventure.character;
+        if (!c || !Array.isArray(c.inventory) || !c.inventory[idx]) return;
+        const itemName = c.inventory[idx];
+        this.closeQuickDrawer();
+        const input = document.getElementById("player-action-input");
+        if (input) {
+          input.value = `J'utilise ${itemName} pour `;
+          input.focus();
+          this.handleCustomActionInput(input.value);
+        }
+        this.toast(`🎒 "${itemName}" prêt dans votre action !`);
+      },
+
+      renderInventoryList() {
+        const c = state.currentAdventure && state.currentAdventure.character;
+        const invEl = document.getElementById("sheet-inventory");
+        if (!invEl || !c) return;
+        const items = c.inventory || [];
+        if (items.length === 0) {
+          invEl.innerHTML = `<div class="p-4 rounded-2xl bg-surface-950/70 border border-dashed border-white/10 text-center text-xs text-slate-500">Votre sac est vide pour le moment.</div>`;
+          return;
+        }
+        invEl.innerHTML = items.map((item, idx) => {
+          const selected = state.selectedInventoryItem === idx;
+          return `
+            <div class="rounded-2xl bg-surface-950/85 border ${selected ? "accent-border" : "border-white/10"} overflow-hidden transition">
+              <button type="button" onclick="app.selectInventoryItem(${idx})"
+                class="w-full px-3.5 py-3 flex items-center justify-between gap-2 text-left hover:bg-white/5 transition">
+                <span class="text-sm font-medium text-slate-100 flex items-center gap-2 min-w-0">
+                  <span class="text-base shrink-0">🎒</span>
+                  <span class="truncate">${escapeHtml(item)}</span>
+                </span>
+                <span class="text-[11px] text-slate-400 shrink-0">${selected ? "▴" : "Utiliser ▾"}</span>
+              </button>
+              ${selected ? `
+                <div class="px-3.5 pb-3 pt-1 border-t border-white/5 bg-surface-900/70">
+                  <button type="button" onclick="app.useInventoryItemInAction(${idx})"
+                    class="w-full py-2.5 rounded-xl accent-bg text-white text-xs font-semibold shadow hover:brightness-110 transition active:scale-95">
+                    ✨ Utiliser dans mon action
+                  </button>
+                </div>
+              ` : ""}
+            </div>
+          `;
+        }).join("");
+      },
+
+      renderNpcsList() {
+        const npcs = (state.currentAdventure && state.currentAdventure.npcs) || [];
+        const count = npcs.length;
+        const dockNpcCount = document.getElementById("dock-npc-count");
+        if (dockNpcCount) dockNpcCount.textContent = count;
+
+        const container = document.getElementById("sheet-npcs-list");
+        if (!container) return;
+        if (count === 0) {
+          container.innerHTML = `<div class="p-4 rounded-2xl bg-surface-950/70 border border-dashed border-white/10 text-center text-xs text-slate-500">Aucun personnage rencontré pour l'instant. Allez discuter avec les habitants !</div>`;
+          return;
+        }
+
+        const affinityStyle = (aff) => {
+          const a = String(aff || "").toLowerCase();
+          if (a.includes("complice") || a.includes("allié") || a.includes("amoureux")) return "bg-amber-500/20 border-amber-400/45 text-amber-200";
+          if (a.includes("amical") || a.includes("chaleureux") || a.includes("confiant")) return "bg-emerald-500/20 border-emerald-400/45 text-emerald-200";
+          if (a.includes("rival") || a.includes("hostile") || a.includes("ennemi")) return "bg-rose-500/20 border-rose-400/45 text-rose-200";
+          if (a.includes("méfiant") || a.includes("froid")) return "bg-orange-500/20 border-orange-400/45 text-orange-200";
+          return "bg-slate-500/20 border-white/15 text-slate-200";
+        };
+
+        container.innerHTML = npcs.map(npc => `
+          <div class="p-3.5 rounded-2xl bg-surface-950/85 border border-white/10 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold text-sm text-white truncate">${escapeHtml(npc.name)}</span>
+              <span class="px-2 py-0.5 rounded-full border text-[10px] font-bold shrink-0 ${affinityStyle(npc.affinity)}">${escapeHtml(npc.affinity || "Neutre")}</span>
+            </div>
+            ${npc.role ? `<div class="text-[11px] accent-text font-medium">${escapeHtml(npc.role)}</div>` : ""}
+            ${npc.note ? `<p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(npc.note)}</p>` : ""}
+          </div>
+        `).join("");
+      },
+
+      saveCurrentAdventure() {
+        if (!state.currentAdventure) return;
+        state.currentAdventure.updatedAt = Date.now();
+        this.persistAdventures();
+      },
+
+      renderCharacterSheet() {
+        const adv = state.currentAdventure;
+        if (!adv) return;
+        const c = adv.character;
+        const xpNeeded = c.level * 100;
+        const hpPct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+        const xpPct = Math.max(0, Math.min(100, Math.round((c.xp / xpNeeded) * 100)));
+
+        document.getElementById("sheet-name").textContent = c.name;
+        document.getElementById("sheet-class").textContent = c.className;
+        document.getElementById("sheet-level").textContent = `Niv. ${c.level}`;
+
+        const hpColor = hpPct > 50 ? "bg-emerald-500" : hpPct > 25 ? "bg-amber-500" : "bg-rose-500";
+        const hpTextCol = hpPct > 50 ? "text-emerald-400" : hpPct > 25 ? "text-amber-400" : "text-rose-400";
+        document.getElementById("sheet-hp-text").className = `font-bold ${hpTextCol}`;
+        document.getElementById("sheet-hp-text").textContent = `${c.hp} / ${c.maxHp}`;
+        document.getElementById("sheet-hp-bar").className = `h-full ${hpColor} rounded-full transition-all duration-500`;
+        document.getElementById("sheet-hp-bar").style.width = `${hpPct}%`;
+
+        document.getElementById("sheet-xp-text").textContent = `${c.xp} / ${xpNeeded}`;
+        document.getElementById("sheet-xp-bar").style.width = `${xpPct}%`;
+
+        this.renderHud();
+        this.renderNpcsList();
+        this.renderInventoryList();
+
+        // Mise à jour des badges de la Barre d'accès rapide
+        const dockInvCount = document.getElementById("dock-inv-count");
+        if (dockInvCount) dockInvCount.textContent = (c.inventory || []).length;
+        const dockHpBadge = document.getElementById("dock-hp-badge");
+        if (dockHpBadge) {
+          dockHpBadge.textContent = `${c.hp}/${c.maxHp}`;
+          dockHpBadge.className = `absolute -top-1.5 -right-5 px-1 h-4 rounded-full border text-[9px] font-bold flex items-center justify-center tabular-nums ${
+            hpPct > 50 ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
+            : hpPct > 25 ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
+            : "bg-rose-500/25 border-rose-500/45 text-rose-300"
+          }`;
+        }
+        const activeQuestsCount = (c.quests || []).filter(q => q.status !== "done").length;
+        const dockQuestCount = document.getElementById("dock-quest-count");
+        if (dockQuestCount) dockQuestCount.textContent = activeQuestsCount;
+
+        const hasBonus = (c.unspentStatPoints || 0) > 0;
+        document.getElementById("sheet-levelup-banner").classList.toggle("hidden", !hasBonus);
+        document.getElementById("sheet-unspent-pts").textContent = c.unspentStatPoints || 0;
+
+        document.getElementById("sheet-stats").innerHTML = STAT_DEFS.map(s => {
+          const val = c.stats[s.key] || 10;
+          const mod = statMod(val);
+          return `
+            <div class="p-2.5 rounded-xl bg-surface-950/80 border border-white/10 flex items-center justify-between">
+              <div>
+                <div class="text-[11px] text-slate-400 font-medium">${s.icon} ${s.key}</div>
+                <div class="text-sm font-bold text-white">${val} <span class="text-xs font-semibold ${mod >= 0 ? "text-emerald-400" : "text-rose-400"}">(${formatMod(mod)})</span></div>
+              </div>
+              ${hasBonus && val < 20 ? `<button type="button" onclick="app.spendLevelStat('${s.key}')" class="w-7 h-7 rounded-lg accent-bg text-white text-xs font-bold hover:brightness-110">+</button>` : ""}
+            </div>
+          `;
+        }).join("");
+
+        const quests = c.quests || [];
+        document.getElementById("sheet-quests").innerHTML = quests.length === 0
+          ? `<div class="p-4 rounded-2xl bg-surface-950/70 border border-dashed border-white/10 text-center text-xs text-slate-500">Aucune quête enregistrée.</div>`
+          : quests.map(q => `
+              <div class="p-3 rounded-2xl bg-surface-950/85 border ${q.status === "done" ? "border-white/5 opacity-55" : "accent-border"} flex items-start gap-2.5">
+                <span class="shrink-0 mt-0.5">${q.status === "done" ? "✅" : "🔸"}</span>
+                <span class="leading-relaxed ${q.status === "done" ? "line-through" : ""}">${escapeHtml(q.title)}</span>
+              </div>
+            `).join("");
+
+        const hist = adv.diceHistory || [];
+        document.getElementById("sheet-dice-history").innerHTML = hist.length === 0
+          ? `<span class="text-xs text-slate-500 italic">Aucun jet lancé.</span>`
+          : [...hist].reverse().slice(0, 10).map(h => {
+              const col = h.outcomeType === "crit_success" ? "text-amber-300"
+                        : h.outcomeType === "success" ? "text-emerald-400"
+                        : h.outcomeType === "crit_fail" ? "text-rose-400"
+                        : "text-orange-400";
+              return `
+                <div class="p-2 rounded-xl bg-surface-950/70 border border-white/5 text-[11px] flex items-center justify-between gap-2">
+                  <div class="truncate">
+                    <span class="text-slate-300 font-medium">${escapeHtml(h.stat)}</span>
+                    <span class="text-slate-500"> (${h.raw}${formatMod(h.mod)}=${h.total}/${h.dc})</span>
+                  </div>
+                  <span class="font-bold shrink-0 ${col}">${escapeHtml(h.shortLabel || h.label)}</span>
+                </div>
+              `;
+            }).join("");
+      },
+
+      spendLevelStat(statKey) {
+        const c = state.currentAdventure && state.currentAdventure.character;
+        if (!c || !c.unspentStatPoints || c.unspentStatPoints <= 0) return;
+        c.stats[statKey] = (c.stats[statKey] || 10) + 1;
+        c.unspentStatPoints -= 1;
+        if (statKey === "Constitution") { c.maxHp += 3; c.hp += 3; }
+        this.renderCharacterSheet();
+        this.flashHudStat(statKey, 1);
+        this.renderSuggestedActions();
+        this.saveCurrentAdventure();
+        this.toast(`+1 en ${statKey} !`, "success");
+      },
+
+      // ==================== HUD PERMANENT DES 6 STATS ====================
+      renderHud() {
+        const adv = state.currentAdventure;
+        if (!adv) return;
+        const c = adv.character;
+        const xpNeeded = c.level * 100;
+        const hpPct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+        const hpColor = hpPct > 50 ? "bg-emerald-500" : hpPct > 25 ? "bg-amber-500" : "bg-rose-500";
+        const hpTextCol = hpPct > 50 ? "text-emerald-400" : hpPct > 25 ? "text-amber-400" : "text-rose-400";
+
+        document.getElementById("hud-name").textContent = c.name;
+        document.getElementById("hud-level").textContent = `Niv. ${c.level}`;
+        document.getElementById("hud-xp-text").textContent = `XP ${c.xp}/${xpNeeded}`;
+        document.getElementById("hud-hp-bar").className = `h-full ${hpColor} rounded-full transition-all duration-500`;
+        document.getElementById("hud-hp-bar").style.width = `${hpPct}%`;
+        document.getElementById("hud-hp-text").className = `text-[11px] font-bold tabular-nums ${hpTextCol}`;
+        document.getElementById("hud-hp-text").textContent = `${c.hp}/${c.maxHp}`;
+
+        document.getElementById("hud-stats-grid").innerHTML = STAT_DEFS.map(s => {
+          const val = c.stats[s.key] || 10;
+          const mod = statMod(val);
+          const isActive = state.hudActiveStat === s.key;
+          const flashInfo = state.hudFlashStats[s.key];
+          const flashClass = flashInfo ? (flashInfo.delta > 0 ? "stat-flash-up" : "stat-flash-down") : "";
+          const floatHtml = flashInfo
+            ? `<span class="stat-float-badge pointer-events-none absolute -top-2 left-1/2 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold shadow-lg ${flashInfo.delta > 0 ? "bg-emerald-500 text-slate-950" : "bg-rose-500 text-white"}">${flashInfo.delta > 0 ? `+${flashInfo.delta}` : flashInfo.delta}</span>`
+            : "";
+
+          return `
+            <button type="button" data-hud-stat="${s.key}" onclick="app.inspectHudStat('${s.key}')"
+              title="${s.key} (${val}, ${formatMod(mod)}) — ${s.desc}"
+              class="relative px-2 py-1.5 rounded-xl bg-surface-900/90 border border-white/10 hover:border-white/25 transition flex items-center justify-between gap-1 text-left ${isActive ? "stat-pill-active" : ""} ${flashClass}">
+              ${floatHtml}
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="text-xs leading-none shrink-0">${s.icon}</span>
+                <span class="text-[10px] font-bold tracking-wide ${isActive ? "text-white" : "text-slate-300"}">${s.short}</span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0 tabular-nums">
+                <span class="text-xs font-extrabold text-white">${val}</span>
+                <span class="text-[10px] font-bold ${mod >= 0 ? "text-emerald-400" : "text-rose-400"}">(${formatMod(mod)})</span>
+                ${isActive ? `<span class="text-[10px] leading-none animate-pulse">⚡</span>` : ""}
+              </div>
+            </button>
+          `;
+        }).join("");
+      },
+
+      highlightHudStat(statKey) {
+        const normalized = statKey ? normalizeStatKey(statKey) : null;
+        if (state.hudActiveStat === normalized) return;
+        state.hudActiveStat = normalized;
+        this.renderHud();
+      },
+
+      flashHudStat(statKey, delta) {
+        const key = normalizeStatKey(statKey);
+        if (state.hudFlashStats[key] && state.hudFlashStats[key].timer) {
+          clearTimeout(state.hudFlashStats[key].timer);
+        }
+        const timer = setTimeout(() => {
+          delete state.hudFlashStats[key];
+          this.renderHud();
+        }, 1900);
+        state.hudFlashStats[key] = { delta, timer };
+        this.renderHud();
+      },
+
+      inspectHudStat(statKey) {
+        const c = state.currentAdventure && state.currentAdventure.character;
+        if (!c) return;
+        const s = getStatDef(statKey);
+        const val = c.stats[s.key] || 10;
+        const mod = statMod(val);
+        this.toast(`${s.icon} ${s.key} : ${val} (${formatMod(mod)}) — ${s.desc}`);
+      },
+
+      renderChatLog() {
+        const log = document.getElementById("chat-log");
+        const msgs = (state.currentAdventure && state.currentAdventure.messages) || [];
+
+        log.innerHTML = msgs.map(m => {
+          if (m.role === "player") {
+            return `
+              <div class="flex justify-end animate-fade-in">
+                <div class="max-w-[88%] sm:max-w-[75%] px-4 py-3 rounded-2xl rounded-tr-sm accent-bg text-white text-sm leading-relaxed shadow-md break-words">
+                  ${escapeHtml(m.text)}
+                </div>
+              </div>
+            `;
+          }
+          if (m.role === "dice") {
+            const sDef = getStatDef(m.stat);
+            const color = m.outcomeType === "crit_success" ? "border-amber-400/50 bg-amber-500/15 text-amber-200"
+                        : m.outcomeType === "success" ? "border-emerald-500/45 bg-emerald-500/10 text-emerald-200"
+                        : m.outcomeType === "crit_fail" ? "border-rose-500/50 bg-rose-500/15 text-rose-200"
+                        : "border-orange-500/45 bg-orange-500/10 text-orange-200";
+            return `
+              <div class="flex justify-center animate-fade-in">
+                <div class="px-4 py-2 rounded-2xl border text-xs sm:text-sm flex flex-wrap items-center justify-center gap-2 shadow ${color}">
+                  <span>${sDef.icon} <strong>${escapeHtml(sDef.key)}</strong> · D20(${m.raw}) ${formatMod(m.mod)} = <strong>${m.total}</strong> vs DD ${m.dc}</span>
+                  <span class="px-2.5 py-0.5 rounded-full bg-black/35 font-extrabold">${escapeHtml(m.label)}</span>
+                </div>
+              </div>
+            `;
+          }
+          if (m.role === "system") {
+            return `
+              <div class="flex justify-center animate-fade-in">
+                <div class="px-3.5 py-1.5 rounded-full bg-surface-800 border border-white/10 text-xs text-slate-300 font-medium text-center">
+                  ${escapeHtml(m.text)}
+                </div>
+              </div>
+            `;
+          }
+          return `
+            <div class="flex gap-2.5 sm:gap-3 items-start animate-fade-in">
+              <div class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl accent-bg flex items-center justify-center text-white font-display font-bold text-xs shadow">MJ</div>
+              <div class="flex-1 min-w-0 bg-surface-900/90 border border-white/10 rounded-2xl rounded-tl-sm px-3.5 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-[15px] text-slate-200 leading-relaxed shadow break-words">
+                ${renderRichText(m.text)}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        log.scrollTop = log.scrollHeight;
+        this.handleChatScroll();
+      },
+
+      // ==================== CHOIX PROPOSÉS & SURVOL ACTIF ====================
+      renderSuggestedActions() {
+        const adv = state.currentAdventure;
+        if (!adv) return;
+        const c = adv.character;
+        const actions = (adv.suggestedActions || []).map(normalizeChoice);
+
+        document.getElementById("suggested-actions").innerHTML = actions.map((ch, idx) => {
+          let badgeHtml = "";
+          let hoverAttrs = "";
+          if (ch.needsRoll && ch.stat && ch.dc) {
+            const sDef = getStatDef(ch.stat);
+            const mod = statMod(c.stats[sDef.key] || 10);
+            const col = getDcColorClasses(ch.dc);
+            badgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-bold ${col.pill}">${sDef.icon} ${escapeHtml(sDef.key)} · DD ${ch.dc} (${formatMod(mod)})</span>`;
+            hoverAttrs = `onmouseenter="app.highlightHudStat('${sDef.key}')" onfocus="app.highlightHudStat('${sDef.key}')" onmouseleave="app.clearChoiceHoverHighlight()" onblur="app.clearChoiceHoverHighlight()"`;
+          } else {
+            badgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[11px] font-medium">💬 Roleplay direct</span>`;
+          }
+
+          return `
+            <button type="button" onclick="app.selectSuggestedChoice(${idx})" ${hoverAttrs}
+              ${state.isThinking ? "disabled" : ""}
+              class="p-2.5 sm:p-3 rounded-xl bg-surface-800/90 hover:bg-surface-700/90 border border-white/10 hover:accent-border text-left transition flex flex-col justify-between gap-2 disabled:opacity-40 active:scale-[0.98]">
+              <span class="text-xs sm:text-[13px] text-slate-100 font-medium leading-snug">${escapeHtml(ch.text)}</span>
+              <div>${badgeHtml}</div>
+            </button>
+          `;
+        }).join("");
+      },
+
+      clearChoiceHoverHighlight() {
+        if (state.bg3Modal) return;
+        const inputEl = document.getElementById("player-action-input");
+        const detected = detectStatFromText(inputEl ? inputEl.value : "");
+        this.highlightHudStat(detected);
+      },
+
+      selectSuggestedChoice(idx) {
+        if (state.isThinking) return;
+        const adv = state.currentAdventure;
+        const ch = normalizeChoice(adv && adv.suggestedActions && adv.suggestedActions[idx]);
+        if (!ch.text) return;
+
+        document.getElementById("game-error-banner").classList.add("hidden");
+
+        if (ch.needsRoll && ch.stat && ch.dc) {
+          this.openBg3ConfirmModal({
+            actionText: ch.text,
+            stat: ch.stat,
+            dc: ch.dc,
+            risk: ch.risk || "Un échec pourrait compliquer votre situation.",
+            statReason: ch.statReason || `Cette approche repose sur votre ${ch.stat.toLowerCase()}.`,
+            isCustom: false
+          });
+        } else {
+          this.highlightHudStat(null);
+          this.executeDirectAction(ch.text);
+        }
+      },
+
+      // ==================== ACTION INVENTÉE (DÉTECTION LIVE + MICRO-ÉVALUATION) ====================
+      handleCustomActionInput(val) {
+        const hintEl = document.getElementById("custom-stat-hint");
+        const hintText = document.getElementById("custom-stat-hint-text");
+        const detected = detectStatFromText(val);
+
+        if (detected && state.currentAdventure) {
+          const sDef = getStatDef(detected);
+          const mod = statMod(state.currentAdventure.character.stats[sDef.key] || 10);
+          hintText.innerHTML = `🎯 Stat détectée : <strong class="text-white">${sDef.icon} ${sDef.key} (${formatMod(mod)})</strong>`;
+          hintEl.classList.remove("hidden");
+          this.highlightHudStat(sDef.key);
+        } else {
+          hintEl.classList.add("hidden");
+          if (!state.bg3Modal) this.highlightHudStat(null);
+        }
+      },
+
+      async handleCustomActionSubmit(e) {
+        e.preventDefault();
+        if (state.isThinking) return;
+        const input = document.getElementById("player-action-input");
+        const text = input.value.trim();
+        if (!text) return;
+
+        document.getElementById("game-error-banner").classList.add("hidden");
+        await this.evaluateCustomAction(text);
+      },
+
+      async evaluateCustomAction(actionText) {
+        const adv = state.currentAdventure;
+        if (!adv) return;
+
+        const preDetected = detectStatFromText(actionText);
+        if (preDetected) this.highlightHudStat(preDetected);
+        this.setThinking(true, "⚖️ Évaluation de la stat et de la difficulté...");
+        const lastGm = [...adv.messages].reverse().find(m => m.role === "gm");
+        const lastGmMsg = lastGm ? lastGm.text : "";
+
+        try {
+          const raw = await callGemini({
+            forceSpeed: "LOW",
+            temperature: 0.25,
+            expectJson: true,
+            contents: [{
+              role: "user",
+              parts: [{
+                text: `Tu es un arbitre JDR D20 strict sur la fluidité du roleplay. Évalue l'action libre du joueur par rapport à la scène.
+Scène actuelle : "${lastGmMsg.slice(0, 650)}"
+Personnage : ${adv.character.name} (${adv.character.className}, Niv. ${adv.character.level})
+Action du joueur : "${actionText}"
+
+RÈGLE D'OR (ZÉRO JET INUTILE) :
+- Mets OBLIGATOIREMENT "needsRoll": false pour toute action simple, quotidienne ou de pur roleplay : ouvrir son portefeuille/sac, aller parler à quelqu'un, poser une question normale, commander un verre, rigoler/plaisanter avec un PNJ, s'asseoir, marcher, regarder autour de soi normalement, donner un objet.
+- Mets "needsRoll": true UNIQUEMENT s'il y a un VRAI risque, une opposition active ou une incertitude majeure : mentir/bluffer quelqu'un de méfiant, crocheter une serrure, esquiver un piège, négocier un gros rabais difficile, combattre, lancer un objet avec précision en situation tendue, repérer un détail caché critique.
+Stats autorisées : Force, Agilité, Intelligence, Charisme, Constitution, Perception.
+
+Réponds UNIQUEMENT en JSON strict :
+{
+  "needsRoll": false,
+  "stat": null,
+  "dc": null,
+  "statReason": "",
+  "risk": ""
+}`
+              }]
+            }]
+          });
+
+          const evalData = safeParseAIJson(raw, () => ({ needsRoll: false }));
+          this.setThinking(false);
+          this.updateApiStatusIndicator("ok");
+
+          if (evalData.needsRoll && evalData.stat) {
+            const confirmedStat = normalizeStatKey(evalData.stat);
+            this.openBg3ConfirmModal({
+              actionText,
+              stat: confirmedStat,
+              dc: Math.max(6, Math.min(20, parseInt(evalData.dc, 10) || 12)),
+              risk: evalData.risk || "Cette tentative comporte un risque réel.",
+              statReason: evalData.statReason || `Action faisant appel à votre ${confirmedStat.toLowerCase()}.`,
+              isCustom: true
+            });
+          } else {
+            document.getElementById("player-action-input").value = "";
+            document.getElementById("custom-stat-hint").classList.add("hidden");
+            this.highlightHudStat(null);
+            await this.executeDirectAction(actionText);
+          }
+        } catch (err) {
+          this.setThinking(false);
+          this.showGameError(err, () => this.evaluateCustomAction(actionText));
+        }
+      },
+
+      // ==================== ACTION DIRECTE (SANS JET) ====================
+      async executeDirectAction(actionText) {
+        const adv = state.currentAdventure;
+        if (!adv) return;
+
+        adv.messages.push({ role: "player", text: actionText, timestamp: Date.now() });
+        this.renderChatLog();
+        this.saveCurrentAdventure();
+
+        await this.requestDirectOutcome(actionText);
+      },
+
+      async requestDirectOutcome(actionText) {
+        const adv = state.currentAdventure;
+        if (!adv) return;
+        this.setThinking(true, "Le Maître du Jeu raconte la suite");
+
+        try {
+          const response = await this.fetchGMConsequence({ actionText, rollResult: null });
+          this.setThinking(false);
+          this.updateApiStatusIndicator("ok");
+          this.applyTurnOutcome(response);
+        } catch (err) {
+          this.setThinking(false);
+          this.showGameError(err, () => this.requestDirectOutcome(actionText));
+        }
+      },
+
+      // ==================== MODALE BALDUR'S GATE 3 (CONFIRMATION + PARALLÉLISME) ====================
+      openBg3ConfirmModal({ actionText, stat, dc, risk, statReason, isCustom }) {
+        const c = state.currentAdventure.character;
+        const sDef = getStatDef(stat);
+        const statVal = c.stats[sDef.key] || 10;
+        const mod = statMod(statVal);
+        const chance = calcSuccessChance(dc, mod);
+        const dcColors = getDcColorClasses(dc);
+
+        state.bg3Modal = {
+          actionText,
+          stat: sDef.key,
+          dc,
+          mod,
+          risk,
+          statReason: statReason || `Cette épreuve sollicite votre ${sDef.key.toLowerCase()}.`,
+          isCustom,
+          rollResult: null,
+          animDone: false,
+          apiDone: false,
+          apiResponse: null,
+          apiError: null
+        };
+
+        this.highlightHudStat(sDef.key);
+
+        document.getElementById("bg3-stat-header").textContent = `${sDef.icon} ÉPREUVE DE ${sDef.key.toUpperCase()}`;
+        document.getElementById("bg3-action-text").textContent = actionText;
+        document.getElementById("bg3-stat-icon").textContent = sDef.icon;
+        document.getElementById("bg3-stat-box-title").textContent = `Stat sollicitée : ${sDef.key} (${statVal} → ${formatMod(mod)})`;
+        document.getElementById("bg3-stat-reason").textContent = state.bg3Modal.statReason;
+
+        document.getElementById("bg3-risk-text").textContent = risk || "";
+        document.getElementById("bg3-risk-text").classList.toggle("hidden", !risk);
+
+        const dcEl = document.getElementById("bg3-dc-badge");
+        dcEl.textContent = dc;
+        dcEl.className = `font-display text-2xl font-extrabold leading-tight mt-0.5 ${dcColors.text}`;
+
+        const bonusEl = document.getElementById("bg3-bonus-badge");
+        bonusEl.textContent = formatMod(mod);
+        bonusEl.className = `font-display text-2xl font-extrabold leading-tight mt-0.5 ${mod >= 0 ? "text-emerald-400" : "text-rose-400"}`;
+
+        document.getElementById("bg3-chance-badge").textContent = `${chance}%`;
+        document.getElementById("bg3-confirm-question").innerHTML =
+          `Ce choix a une difficulté de <strong class="${dcColors.text}">DD ${dc}</strong>. Êtes-vous sûr de vouloir tenter ?`;
+
+        const svg = document.getElementById("bg3-dice-svg");
+        svg.classList.remove("dice-rolling", "text-amber-400", "text-emerald-400", "text-rose-500", "text-orange-400");
+        svg.classList.add("accent-text");
+        document.getElementById("bg3-dice-number").textContent = "20";
+        document.getElementById("bg3-dice-number").classList.remove("animate-pop");
+        document.getElementById("bg3-bonus-flyer").classList.add("hidden");
+        document.getElementById("bg3-bonus-flyer").classList.remove("bonus-merging");
+
+        document.getElementById("bg3-confirm-zone").classList.remove("hidden");
+        document.getElementById("bg3-result-zone").classList.add("hidden");
+        document.getElementById("bg3-error-box").classList.add("hidden");
+        document.getElementById("btn-bg3-roll").disabled = false;
+
+        document.getElementById("bg3-dice-modal").classList.remove("hidden");
+      },
+
+      cancelBg3Roll() {
+        state.bg3Modal = null;
+        document.getElementById("bg3-dice-modal").classList.add("hidden");
+        this.clearChoiceHoverHighlight();
+      },
+
+      launchBg3Roll() {
+        const m = state.bg3Modal;
+        if (!m) return;
+        document.getElementById("btn-bg3-roll").disabled = true;
+
+        if (m.isCustom) {
+          document.getElementById("player-action-input").value = "";
+          document.getElementById("custom-stat-hint").classList.add("hidden");
+        }
+
+        // 1. Calcul complet du jet de D20
+        const raw = Math.floor(Math.random() * 20) + 1;
+        const total = raw + m.mod;
+        let outcomeType, label, shortLabel, svgColor, verdictClasses;
+
+        if (raw === 20) {
+          outcomeType = "crit_success";
+          label = "🌟 SUCCÈS CRITIQUE !";
+          shortLabel = "Critique !";
+          svgColor = "text-amber-400";
+          verdictClasses = "bg-amber-500/25 border border-amber-400 text-amber-200";
+        } else if (raw === 1) {
+          outcomeType = "crit_fail";
+          label = "💀 ÉCHEC CRITIQUE !";
+          shortLabel = "Échec Crit.";
+          svgColor = "text-rose-500";
+          verdictClasses = "bg-rose-500/25 border border-rose-500 text-rose-200";
+        } else if (total >= m.dc) {
+          outcomeType = "success";
+          label = "✅ RÉUSSITE";
+          shortLabel = "Réussite";
+          svgColor = "text-emerald-400";
+          verdictClasses = "bg-emerald-500/20 border border-emerald-400 text-emerald-200";
+        } else {
+          outcomeType = "fail";
+          label = "❌ ÉCHEC";
+          shortLabel = "Échec";
+          svgColor = "text-orange-400";
+          verdictClasses = "bg-orange-500/20 border border-orange-400 text-orange-200";
+        }
+
+        m.rollResult = { raw, mod: m.mod, total, dc: m.dc, stat: m.stat, outcomeType, label, shortLabel };
+
+        // 2. Appel API en parallèle pendant l'animation du dé
+        this.startParallelConsequenceFetch();
+
+        // 3. Animation du D20
+        document.getElementById("bg3-confirm-zone").classList.add("hidden");
+        const svg = document.getElementById("bg3-dice-svg");
+        const numEl = document.getElementById("bg3-dice-number");
+        svg.classList.add("dice-rolling");
+        soundFX.playDiceRoll();
+
+        let ticks = 0;
+        const spinInterval = setInterval(() => {
+          numEl.textContent = Math.floor(Math.random() * 20) + 1;
+          ticks++;
+          if (ticks >= 15) {
+            clearInterval(spinInterval);
+            svg.classList.remove("dice-rolling");
+            numEl.textContent = raw;
+            numEl.classList.add("animate-pop");
+
+            if (raw !== 20 && raw !== 1 && m.mod !== 0) {
+              setTimeout(() => {
+                const flyer = document.getElementById("bg3-bonus-flyer");
+                flyer.textContent = formatMod(m.mod);
+                flyer.classList.remove("hidden", "bonus-merging");
+                void flyer.offsetWidth;
+                flyer.classList.add("bonus-merging");
+                soundFX.playBonusMerge();
+
+                setTimeout(() => {
+                  numEl.classList.remove("animate-pop");
+                  void numEl.offsetWidth;
+                  numEl.textContent = total;
+                  numEl.classList.add("animate-pop");
+                  this.finishBg3Animation(svgColor, verdictClasses);
+                }, 480);
+              }, 260);
+            } else {
+              setTimeout(() => {
+                this.finishBg3Animation(svgColor, verdictClasses);
+              }, 350);
+            }
+          }
+        }, 68);
+      },
+
+      finishBg3Animation(svgColor, verdictClasses) {
+        const m = state.bg3Modal;
+        if (!m) return;
+        const r = m.rollResult;
+
+        const svg = document.getElementById("bg3-dice-svg");
+        svg.classList.remove("accent-text");
+        svg.classList.add(svgColor);
+
+        soundFX.playOutcome(r.outcomeType);
+
+        document.getElementById("bg3-math-line").textContent =
+          `D20 (${r.raw}) ${formatMod(r.mod)} = ${r.total}  •  DD ${r.dc}`;
+        const badge = document.getElementById("bg3-verdict-badge");
+        badge.textContent = r.label;
+        badge.className = `inline-block px-5 py-2 rounded-full text-sm font-extrabold tracking-wide shadow-lg animate-pop ${verdictClasses}`;
+
+        document.getElementById("bg3-result-zone").classList.remove("hidden");
+        m.animDone = true;
+        this.syncBg3ContinueButton();
+      },
+
+      async startParallelConsequenceFetch() {
+        const m = state.bg3Modal;
+        if (!m) return;
+        m.apiDone = false;
+        m.apiError = null;
+        m.apiResponse = null;
+
+        try {
+          const resp = await this.fetchGMConsequence({
+            actionText: m.actionText,
+            rollResult: m.rollResult
+          });
+          if (state.bg3Modal !== m) return;
+          m.apiResponse = resp;
+          m.apiDone = true;
+          this.updateApiStatusIndicator("ok");
+          this.syncBg3ContinueButton();
+        } catch (err) {
+          if (state.bg3Modal !== m) return;
+          m.apiError = err;
+          m.apiDone = true;
+          this.updateApiStatusIndicator("error");
+          this.syncBg3ContinueButton();
+        }
+      },
+
+      retryParallelConsequence() {
+        const m = state.bg3Modal;
+        if (!m) return;
+        document.getElementById("bg3-error-box").classList.add("hidden");
+        this.startParallelConsequenceFetch();
+        this.syncBg3ContinueButton();
+      },
+
+      syncBg3ContinueButton() {
+        const m = state.bg3Modal;
+        if (!m || !m.animDone) return;
+
+        const btn = document.getElementById("btn-bg3-continue");
+        const errBox = document.getElementById("bg3-error-box");
+
+        if (m.apiError) {
+          errBox.classList.remove("hidden");
+          document.getElementById("bg3-error-msg").textContent = `Souci API : ${m.apiError.message}`;
+          btn.classList.add("hidden");
+          return;
+        }
+
+        errBox.classList.add("hidden");
+        btn.classList.remove("hidden");
+
+        if (m.apiDone && m.apiResponse) {
+          btn.disabled = false;
+          btn.innerHTML = `<span>📜 Découvrir la conséquence</span>`;
+        } else {
+          btn.disabled = true;
+          btn.innerHTML = `<span>⏳ Le MJ prépare la conséquence...</span>`;
+        }
+      },
+
+      revealBg3Consequence() {
+        const m = state.bg3Modal;
+        if (!m || !m.apiResponse) return;
+
+        const adv = state.currentAdventure;
+        adv.messages.push({ role: "player", text: m.actionText, timestamp: Date.now() });
+        adv.messages.push({ role: "dice", ...m.rollResult, timestamp: Date.now() });
+        adv.diceHistory = adv.diceHistory || [];
+        adv.diceHistory.push({ ...m.rollResult, timestamp: Date.now() });
+
+        const response = m.apiResponse;
+        state.bg3Modal = null;
+        document.getElementById("bg3-dice-modal").classList.add("hidden");
+        this.highlightHudStat(null);
+
+        this.applyTurnOutcome(response);
+      },
+
+      // ==================== PROMPT SYSTÈME & APPEL CONSÉQUENCE ====================
+      buildGMSystemPrompt(theme, c, summary, pacing = "balanced", npcs = []) {
+        const avoidList = [...(state.profile.avoidTags || []), state.profile.avoidCustom].filter(Boolean).join(", ");
+        const statsStr = STAT_DEFS.map(s => `${s.key}:${c.stats[s.key]}(${formatMod(statMod(c.stats[s.key]))})`).join(" ");
+        const activeQuests = (c.quests || []).filter(q => q.status !== "done").map(q => q.title).join(" ; ");
+        const npcsStr = (npcs || []).slice(0, 8).map(n => `${n.name} (${n.affinity || "Neutre"} — ${n.role || "PNJ"})`).join(" | ");
+
+        const pacingGuide = pacing === "rp"
+          ? "RYTHME ACTUEL : DÉTENTE & ROLEPLAY. Privilégie les moments calmes, discussions vivantes, humour, découvertes, pauses (taverne, café, campement) et attachement aux PNJ. Évite les combats forcés. Au moins 2 choix sur 3 doivent être sans jet de dé (needsRoll: false)."
+          : pacing === "action"
+          ? "RYTHME ACTUEL : ACTION & TENSION. Garde un rythme dynamique avec des enjeux élevés et des épreuves tactiques, tout en laissant les PNJ réagir avec personnalité."
+          : "RYTHME ACTUEL : ÉQUILIBRÉ. Fais respirer l'histoire : alterne naturellement entre moments de calme, humour, discussions attachantes avec des PNJ, exploration et scènes de tension/action.";
+
+        return `Tu es un Maître du Jeu (MJ) solo style Baldur's Gate 3, vivant, chaleureux et juste. Langue : français.
+UNIVERS : ${theme.name} (${theme.tagline})
+PRÉFÉRENCES (${state.profile.name || "Joueur"}) : Ambiances=[${(state.profile.ambiances || []).join(", ")}] | Piliers=[${(state.profile.pillars || []).join(", ")}] | À ÉVITER STRICTEMENT=[${avoidList || "Rien"}]
+${pacingGuide}
+PERSONNAGE : ${c.name}, ${c.className}, Niv.${c.level}, PV ${c.hp}/${c.maxHp}, XP ${c.xp}/${c.level * 100}.
+STATS : ${statsStr}
+INVENTAIRE : ${(c.inventory || []).join(", ") || "Vide"}
+QUÊTES : ${activeQuests || "Aucune"}
+PNJ CONNUS : ${npcsStr || "Aucun pour l'instant"}
+RÉSUMÉ DE L'AVENTURE : ${summary || "Début de l'aventure."}
+
+RÈGLES FONDAMENTALES :
+- VRAI ROLEPLAY & PNJ ATTACHANTS : Ne force pas de l'action à chaque tour. Donne vie aux PNJ avec leur caractère, leurs répliques, leur humour, leurs petits secrets et des moments de détente ou de complicité.
+- ZÉRO JET INUTILE : Ne demande JAMAIS de jet de D20 (needsRoll: false) pour une action simple, quotidienne ou de pur roleplay (ouvrir son portefeuille, aller parler à quelqu'un, commander un verre, plaisanter, s'asseoir, marcher, observer normalement). Réserve needsRoll: true STRICTEMENT aux actions risquées ou incertaines.
+- Narration fluide et vivante (1 à 2 paragraphes max).
+- Adapte les DD au niveau ${c.level} (Niv 1-2 : DD 9 à 14 ; Niv 3+ : DD 11 à 17).
+- ÉVOLUTION DES STATS : Lors d'un choix marquant, d'une réussite critique ou d'un contrecoup, tu peux accorder un +1 (ou -1) dans "statChanges" avec une courte raison dans "statChangeReason".
+- CARNET DE PNJ : Quand un PNJ est rencontré ou que la relation évolue, ajoute-le ou mets-le à jour dans le tableau "npcs" (sinon renvoie []).
+- Propose TOUJOURS exactement 3 choix variés ("choices") : lors des scènes calmes/sociales, au moins 1 à 2 choix doivent être du pur roleplay sans jet de dé (needsRoll: false).`;
+      },
+
+      async fetchGMConsequence({ actionText, rollResult }) {
+        const adv = state.currentAdventure;
+        const theme = THEMES[adv.themeId] || THEMES.fantasy;
+
+        const recentHistory = adv.messages
+          .filter(m => m.role === "gm" || m.role === "player" || m.role === "dice")
+          .slice(-8)
+          .map(m => ({
+            role: m.role === "gm" ? "model" : "user",
+            parts: [{
+              text: m.role === "dice"
+                ? `[Jet ${m.stat}: ${m.raw}${formatMod(m.mod)}=${m.total} vs DD ${m.dc} -> ${m.shortLabel || m.label}]`
+                : m.text
+            }]
+          }));
+
+        const turnPrompt = rollResult
+          ? `Action du joueur : "${actionText}"
+[RÉSULTAT DU D20] Stat: ${rollResult.stat} | Jet brut: ${rollResult.raw} | Bonus: ${formatMod(rollResult.mod)} | Total: ${rollResult.total} contre DD ${rollResult.dc} => ${rollResult.label}.
+Narre une conséquence réfléchie, cohérente et dramatique à la Baldur's Gate 3.`
+          : `Action directe du joueur (sans jet) : "${actionText}". Narre la suite logique.`;
+
+        const jsonSchemaInstruction = `
+Réponds UNIQUEMENT en JSON valide :
+{
+  "narrative": "Conséquence immersive (1 à 2 paragraphes max)",
+  "summary": "Résumé cumulatif ultra-court de l'histoire en 1-2 phrases",
+  "hpDelta": 0,
+  "xpDelta": 15,
+  "statChanges": {},
+  "statChangeReason": "",
+  "itemsAdded": [],
+  "itemsRemoved": [],
+  "questAdded": "",
+  "questCompleted": "",
+  "npcs": [
+    { "name": "Nom du PNJ (uniquement si rencontré ou relation modifiée)", "role": "Rôle/trait court", "affinity": "Neutre|Amical|Complice|Méfiant|Rival", "note": "Détail marquant" }
+  ],
+  "choices": [
+    { "text": "Choix 1 (roleplay/discussion calme sans jet)", "needsRoll": false, "stat": null, "dc": null, "statReason": "", "risk": "" },
+    { "text": "Choix 2 (action risquée ou sociale tendue)", "needsRoll": true, "stat": "Charisme", "dc": 12, "statReason": "Courte raison de la stat", "risk": "Risque court si échec" },
+    { "text": "Choix 3 (autre piste)", "needsRoll": false, "stat": null, "dc": null, "statReason": "", "risk": "" }
+  ]
+}`;
+
+        const contents = [
+          ...recentHistory,
+          { role: "user", parts: [{ text: turnPrompt + jsonSchemaInstruction }] }
+        ];
+
+        const rawText = await callGemini({
+          systemPrompt: this.buildGMSystemPrompt(theme, adv.character, adv.summary, adv.pacing, adv.npcs),
+          contents,
+          expectJson: true
+        });
+
+        return safeParseAIJson(rawText, (txt) => ({
+          narrative: txt || "L'histoire continue son cours...",
+          summary: adv.summary,
+          hpDelta: 0,
+          xpDelta: 10,
+          itemsAdded: [],
+          itemsRemoved: [],
+          choices: [
+            { text: "Inspecter les alentours", needsRoll: true, stat: "Perception", dc: 11, statReason: "Chercher des indices.", risk: "Vous pourriez rater un détail." },
+            { text: "Tenter une approche audacieuse", needsRoll: true, stat: "Agilité", dc: 13, statReason: "Agir avec rapidité.", risk: "Vous pourriez vous exposer." },
+            { text: "Observer calmement avant d'agir", needsRoll: false, stat: null, dc: null, statReason: "", risk: "" }
+          ]
+        }));
+      },
+
+      // ==================== APPLICATION DES CONSÉQUENCES ====================
+      applyTurnOutcome(res) {
+        const adv = state.currentAdventure;
+        const c = adv.character;
+
+        if (res.narrative) {
+          adv.messages.push({ role: "gm", text: res.narrative, timestamp: Date.now() });
+        }
+        if (res.summary && typeof res.summary === "string" && res.summary.trim()) {
+          adv.summary = res.summary.trim();
+        }
+
+        const events = [];
+
+        const hpDelta = parseInt(res.hpDelta, 10) || 0;
+        if (hpDelta !== 0) {
+          c.hp = Math.max(0, Math.min(c.maxHp, c.hp + hpDelta));
+          events.push(hpDelta > 0 ? `💚 +${hpDelta} PV` : `💔 ${hpDelta} PV`);
+          if (c.hp === 0) {
+            c.hp = Math.max(3, Math.floor(c.maxHp * 0.25));
+            events.push("✨ Sursaut héroïque ! Vous reprenez vos esprits in extremis.");
+          }
+        }
+
+        const xpDelta = Math.max(0, parseInt(res.xpDelta, 10) || 0);
+        if (xpDelta > 0) {
+          c.xp += xpDelta;
+          events.push(`⭐ +${xpDelta} XP`);
+          while (c.xp >= c.level * 100) {
+            c.xp -= c.level * 100;
+            c.level += 1;
+            const hpGain = 6 + Math.max(0, statMod(c.stats.Constitution));
+            c.maxHp += hpGain;
+            c.hp = c.maxHp;
+            c.unspentStatPoints = (c.unspentStatPoints || 0) + 2;
+            events.push(`🎉 NIVEAU ${c.level} ! (+${hpGain} PV Max, soin complet, +2 pts de stats)`);
+            soundFX.playOutcome("crit_success");
+          }
+        }
+
+        const changedStatsToFlash = [];
+        if (res.statChanges && typeof res.statChanges === "object") {
+          const reason = typeof res.statChangeReason === "string" && res.statChangeReason.trim()
+            ? ` — ${res.statChangeReason.trim()}`
+            : "";
+          Object.entries(res.statChanges).forEach(([rawKey, rawDelta]) => {
+            const delta = parseInt(rawDelta, 10);
+            if (!delta || isNaN(delta)) return;
+            const sDef = getStatDef(rawKey);
+            const oldVal = c.stats[sDef.key] || 10;
+            const newVal = Math.max(4, Math.min(20, oldVal + delta));
+            const actualDelta = newVal - oldVal;
+            if (actualDelta !== 0) {
+              c.stats[sDef.key] = newVal;
+              if (sDef.key === "Constitution") {
+                const hpShift = actualDelta * 2;
+                c.maxHp = Math.max(10, c.maxHp + hpShift);
+                c.hp = Math.max(1, Math.min(c.maxHp, c.hp + hpShift));
+              }
+              changedStatsToFlash.push({ key: sDef.key, delta: actualDelta });
+              events.push(actualDelta > 0
+                ? `📈 ${sDef.icon} ${sDef.key} +${actualDelta}${reason}`
+                : `📉 ${sDef.icon} ${sDef.key} ${actualDelta}${reason}`);
+            }
+          });
+        }
+
+        c.quests = c.quests || [];
+        if (res.questCompleted && typeof res.questCompleted === "string" && res.questCompleted.trim()) {
+          const target = res.questCompleted.trim().toLowerCase();
+          const found = c.quests.find(q => q.status !== "done" && (q.title.toLowerCase().includes(target) || target.includes(q.title.toLowerCase())));
+          if (found) {
+            found.status = "done";
+            events.push(`✅ Quête accomplie : ${found.title}`);
+          }
+        }
+        if (res.questAdded && typeof res.questAdded === "string" && res.questAdded.trim()) {
+          const title = res.questAdded.trim();
+          if (!c.quests.some(q => q.title.toLowerCase() === title.toLowerCase())) {
+            c.quests.unshift({ title, status: "active" });
+            events.push(`📜 Nouvelle quête : ${title}`);
+          }
+        }
+
+        if (Array.isArray(res.itemsAdded)) {
+          res.itemsAdded.forEach(item => {
+            if (item && String(item).trim()) {
+              c.inventory.push(String(item).trim());
+              events.push(`🎒 +${String(item).trim()}`);
+            }
+          });
+        }
+        if (Array.isArray(res.itemsRemoved)) {
+          res.itemsRemoved.forEach(item => {
+            const idx = c.inventory.findIndex(i => i.toLowerCase() === String(item).toLowerCase());
+            if (idx >= 0) {
+              c.inventory.splice(idx, 1);
+              events.push(`📦 -${item}`);
+            }
+          });
+        }
+
+        // Mise à jour dynamique du Carnet de PNJ / Relations
+        if (Array.isArray(res.npcs) && res.npcs.length > 0) {
+          adv.npcs = adv.npcs || [];
+          res.npcs.forEach(rawNpc => {
+            if (!rawNpc || !rawNpc.name || !String(rawNpc.name).trim()) return;
+            const cleanName = String(rawNpc.name).trim();
+            const existing = adv.npcs.find(n => n.name.toLowerCase() === cleanName.toLowerCase());
+            const newAff = String(rawNpc.affinity || "Neutre").trim();
+            if (existing) {
+              const oldAff = existing.affinity;
+              if (rawNpc.role) existing.role = String(rawNpc.role).trim();
+              if (rawNpc.affinity) existing.affinity = newAff;
+              if (rawNpc.note) existing.note = String(rawNpc.note).trim();
+              if (oldAff && newAff && oldAff.toLowerCase() !== newAff.toLowerCase()) {
+                events.push(`👥 ${cleanName} est désormais ${newAff}`);
+              }
+            } else {
+              adv.npcs.unshift({
+                name: cleanName,
+                role: String(rawNpc.role || "").trim(),
+                affinity: newAff,
+                note: String(rawNpc.note || "").trim()
+              });
+              events.push(`👥 Rencontre : ${cleanName} (${newAff})`);
+            }
+          });
+        }
+
+        if (events.length > 0) {
+          adv.messages.push({ role: "system", text: events.join("  •  "), timestamp: Date.now() });
+        }
+
+        const rawChoices = Array.isArray(res.choices) ? res.choices : (Array.isArray(res.suggestedActions) ? res.suggestedActions : []);
+        adv.suggestedActions = rawChoices.length
+          ? rawChoices.slice(0, 3).map(normalizeChoice)
+          : [
+              { text: "Observer les environs", needsRoll: true, stat: "Perception", dc: 11, statReason: "Scruter les environs.", risk: "Vous pourriez manquer un détail." },
+              { text: "Continuer prudemment", needsRoll: false, stat: null, dc: null, statReason: "", risk: "" }
+            ];
+
+        this.renderCharacterSheet();
+        changedStatsToFlash.forEach(item => this.flashHudStat(item.key, item.delta));
+        this.renderChatLog();
+        this.renderSuggestedActions();
+        this.saveCurrentAdventure();
+      },
+
+      // ==================== ÉTATS DE CHARGEMENT & ERREURS ====================
+      setThinking(val, label = "Le Maître du Jeu tisse la suite") {
+        state.isThinking = val;
+        document.getElementById("gm-typing-label").textContent = label;
+        document.getElementById("gm-typing").classList.toggle("hidden", !val);
+        document.getElementById("btn-send-action").disabled = val;
+        this.renderSuggestedActions();
+        const log = document.getElementById("chat-log");
+        if (log) log.scrollTop = log.scrollHeight;
+      },
+
+      showGameError(err, retryFn) {
+        state.lastFailedTask = retryFn;
+        this.updateApiStatusIndicator("error");
+        document.getElementById("game-error-detail").textContent = err.message || "Erreur réseau inconnue.";
+        document.getElementById("game-error-banner").classList.remove("hidden");
+      },
+
+      retryLastTurn() {
+        if (!state.lastFailedTask || state.isThinking) return;
+        document.getElementById("game-error-banner").classList.add("hidden");
+        const fn = state.lastFailedTask;
+        state.lastFailedTask = null;
+        fn();
+      }
+    };
+
+    window.app = app;
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", () => app.init());
+    } else {
+      app.init();
+    }
+  </script>
+</body>
+</html>
